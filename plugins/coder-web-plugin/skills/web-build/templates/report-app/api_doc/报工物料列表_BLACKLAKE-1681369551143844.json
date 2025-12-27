@@ -1,0 +1,50 @@
+{
+  "接口名称": "报工物料列表",
+  "接口路径": "/openapi/domain/web/v1/route/mfg/open/v1/progress_report/_list_progress_report_materials",
+  "请求方法": "POST",
+  "代码位置": "services/business.js line 324",
+  
+  "请求参数": {
+    "taskId": {
+      "类型": "number",
+      "必填": true,
+      "说明": "生产任务ID"
+    }
+  },
+  
+  "响应结构": {
+    "code": "200 表示成功",
+    "message": "返回信息",
+    "data": {
+      "outputMaterials": "产出物料数组",
+      "inputMaterials": "投入物料数组"
+    }
+  },
+  
+  "关键响应字段 - outputMaterials[]": {
+    "materialInfo": "object - 物料信息，包含 baseInfo（id、name、code 等）",
+    "materialInfo.baseInfo.id": "number - 物料ID（主产出物料ID）",
+    "materialInfo.baseInfo.name": "string - 物料名称（显示：加工物料名称）",
+    "materialInfo.baseInfo.code": "string - 物料编码（显示：物料编号）",
+    "materialInfo.baseInfo.specification": "string - 规格",
+    "outputMaterialUnit": "object - 报工单位信息（必填，用于报工）",
+    "outputMaterialUnit.id": "number - 单位ID（报工时必需：reportUnitId）",
+    "outputMaterialUnit.code": "string - 单位编码",
+    "outputMaterialUnit.name": "string - 单位名称（如：个、kg）",
+    "mainFlag": "boolean - 是否为主产出物料（优先选择 mainFlag=true 的物料）",
+    "reportType": "array<number> - 可报工方式列表",
+    "warehousingFlag": "boolean - 是否入库",
+    "autoWarehousingFlag": "boolean - 是否自动入库",
+    "progressReportKey": "object - 报工关系信息（必填，用于构建报工参数）",
+    "progressReportKey.lineId": "number - 物料行ID（报工时必需）",
+    "progressReportKey.materialId": "number - 物料ID（报工时必需）",
+    "progressReportKey.reportProcessId": "number - 报工工序ID（报工时必需）",
+    "outputMaterialAmount": "object - 产出物料数量信息",
+    "outputMaterialAmount.amount": "number - 数量",
+    "outputMaterialAmount.amountDisplay": "string - 数量显示"
+  },
+  
+  "使用场景": "用于获取报工必填参数，特别是 progressReportKey 和 outputMaterialUnit",
+  "使用示例": "参见 services/business.js:318-389 的 getReportRequiredParams 方法"
+}
+

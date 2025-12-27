@@ -1,0 +1,14 @@
+{
+  "name": "op-plugin",
+  "description": "Operational Platform plugin with agents and skills for workflow, connectors, events, and database operations",
+  "version": "1.0.4",
+  "author": {
+    "name": "Your Team"
+  },
+  "mcpServers": {
+    "op": {
+      "type": "http",
+      "url": "https://op-mcp-test.blacklake.tech/mcp"
+    }
+  }
+}

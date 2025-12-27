@@ -1,0 +1,15 @@
+{
+  "name": "mcp-plugin",
+  "description": "Shared MCP server configuration plugin for OP platform integration",
+  "version": "1.0.4",
+  "author": {
+    "name": "Your Team"
+  },
+  "mcpServers": {
+    "op": {
+      "type": "http",
+      "url": "https://op-mcp-test.blacklake.tech/mcp"
+    }
+  }
+}
+

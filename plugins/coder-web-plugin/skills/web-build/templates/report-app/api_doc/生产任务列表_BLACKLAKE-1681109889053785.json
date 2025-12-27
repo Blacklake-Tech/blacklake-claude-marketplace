@@ -1,0 +1,61 @@
+{
+  "接口名称": "生产任务列表",
+  "接口路径": "/openapi/domain/web/v1/route/mfg/open/v1/produce_task/_list",
+  "请求方法": "POST",
+  "代码位置": "services/business.js line 303",
+  
+  "请求参数": {
+    "page": {
+      "类型": "number",
+      "必填": false,
+      "默认": 1,
+      "说明": "页码"
+    },
+    "size": {
+      "类型": "number",
+      "必填": false,
+      "默认": 10,
+      "说明": "每页数量"
+    },
+    "workOrderIdList": {
+      "类型": "number[]",
+      "必填": true,
+      "说明": "工单ID列表"
+    }
+  },
+  
+  "响应结构": {
+    "code": "200 表示成功",
+    "message": "返回信息",
+    "data": {
+      "list": "生产任务数组",
+      "page": "当前页",
+      "total": "总条数"
+    }
+  },
+  
+  "关键响应字段": {
+    "data.list[].taskId": "number - 生产任务ID（必填，用于报工）",
+    "data.list[].taskCode": "string - 生产任务编号",
+    "data.list[].workOrderId": "number - 工单ID",
+    "data.list[].workOrderCode": "string - 工单编号",
+    "data.list[].executorList": "array - 执行人列表（报工时需要）",
+    "data.list[].executorList[].id": "number - 执行人ID",
+    "data.list[].executorList[].code": "string - 执行人编号",
+    "data.list[].executorList[].name": "string - 执行人姓名",
+    "data.list[].executorList[].username": "string - 用户名",
+    "data.list[].processId": "number - 工序ID",
+    "data.list[].processCode": "string - 工序编号",
+    "data.list[].processName": "string - 工序名称",
+    "data.list[].taskStatus": "object - 任务状态",
+    "data.list[].taskStatus.code": "number - 状态码",
+    "data.list[].taskStatus.message": "string - 状态描述",
+    "data.list[].materialInfo": "object - 主产出物料信息",
+    "data.list[].materialInfo.baseInfo.id": "number - 物料ID",
+    "data.list[].materialInfo.baseInfo.name": "string - 物料名称",
+    "data.list[].materialInfo.baseInfo.code": "string - 物料编码"
+  },
+  
+  "使用场景": "用于获取工单下的生产任务信息，特别是获取 taskId 用于后续报工操作",
+  "使用示例": "参见 services/business.js:287-317 的 getReportRequiredParams 方法中的任务查询部分"
+}

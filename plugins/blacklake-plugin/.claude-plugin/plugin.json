@@ -1,0 +1,14 @@
+{
+  "name": "blacklake-plugin",
+  "description": "Blacklake internal operations assistant plugin with agents and skills for workflow troubleshooting, connector configuration, platform analytics, and database operations",
+  "version": "1.0.4",
+  "author": {
+    "name": "Blacklake Team"
+  },
+  "mcpServers": {
+    "op": {
+      "type": "http",
+      "url": "https://op-mcp-test.blacklake.tech/mcp"
+    }
+  }
+}

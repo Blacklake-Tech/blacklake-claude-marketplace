@@ -1,0 +1,9 @@
+{
+  "name": "coder-flow-plugin",
+  "description": "Flow development plugin with designer and developer agents",
+  "version": "1.0.4",
+  "author": {
+    "name": "Your Team"
+  }
+}
+

@@ -1,0 +1,77 @@
+{
+  "name": "claude-marketplace",
+  "version": "1.0.4",
+  "owner": {
+    "name": "Your Team",
+    "email": "team@example.com"
+  },
+  "plugins": [
+    {
+      "name": "mcp-plugin",
+      "source": "./plugins/mcp-plugin",
+      "description": "Shared MCP server configuration plugin for OP platform integration",
+      "version": "1.0.4",
+      "author": {
+        "name": "Your Team"
+      },
+      "keywords": ["mcp", "op", "integration"],
+      "category": "infrastructure"
+    },
+    {
+      "name": "coder-flow-plugin",
+      "source": "./plugins/coder-flow-plugin",
+      "description": "Flow development plugin with designer and developer agents",
+      "version": "1.0.4",
+      "author": {
+        "name": "Your Team"
+      },
+      "keywords": ["code", "development", "designer", "developer", "flow"],
+      "category": "development"
+    },
+    {
+      "name": "coder-web-plugin",
+      "source": "./plugins/coder-web-plugin",
+      "description": "Web development plugin with frontend agents",
+      "version": "1.0.4",
+      "author": {
+        "name": "Your Team"
+      },
+      "keywords": ["code", "development", "frontend", "web", "html", "react"],
+      "category": "development"
+    },
+    {
+      "name": "video-analyst-plugin",
+      "source": "./plugins/video-analyst-plugin",
+      "description": "Video analysis plugin with frame analysis capabilities",
+      "version": "1.0.4",
+      "author": {
+        "name": "Your Team"
+      },
+      "keywords": ["video", "analysis"],
+      "category": "exploration"
+    },
+    {
+      "name": "op-plugin",
+      "source": "./plugins/op-plugin",
+      "description": "Operational Platform plugin with agents and skills for workflow, connectors, events, and database operations",
+      "version": "1.0.4",
+      "author": {
+        "name": "Your Team"
+      },
+      "keywords": ["workflow", "connector", "event", "database"],
+      "category": "productivity"
+    },
+    {
+      "name": "blacklake-plugin",
+      "source": "./plugins/blacklake-plugin",
+      "description": "Blacklake internal operations assistant plugin with agents and skills for workflow troubleshooting, connector configuration, platform analytics, and database operations",
+      "version": "1.0.4",
+      "author": {
+        "name": "Blacklake Team"
+      },
+      "keywords": ["workflow", "connector", "event", "database", "analytics", "troubleshooting"],
+      "category": "productivity"
+    }
+  ]
+}
+
