@@ -52,6 +52,11 @@ Blacklake 公司内部运维辅助工具插件，提供工作流排查、连接�
 - **db-e-report** - v3_e-report 数据库查询
   - 数据分析告警配置查询
 
+- **es-log** - ES 日志查询和写入
+  - 支持从线上查询数据后写入 feature/test 环境
+  - 提供完整的造数据工作流程
+  - 包含环境配置和索引映射
+
 ## 安装方式
 
 ### 方式一：插件市场安装（推荐）
@@ -91,7 +96,8 @@ blacklake_plugin/
 │   │   └── COMMON.md            # 符号链接
 │   ├── db-openapi/
 │   ├── db-metadata/
-│   └── db-e-report/
+│   ├── db-e-report/
+│   └── es-log/
 ├── agents/                       # 业务逻辑层
 │   ├── workflow-troubleshooter.md
 │   ├── connector-registrar.md
@@ -122,6 +128,9 @@ cd ../db-metadata
 ln -s ../../common/COMMON.md COMMON.md
 
 cd ../db-e-report
+ln -s ../../common/COMMON.md COMMON.md
+
+cd ../es-log
 ln -s ../../common/COMMON.md COMMON.md
 ```
 
