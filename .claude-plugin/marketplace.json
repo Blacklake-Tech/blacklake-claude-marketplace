@@ -2,8 +2,7 @@
   "name": "blacklake-claude-marketplace",
   "version": "1.0.4",
   "owner": {
-    "name": "Your Team",
-    "email": "team@example.com"
+    "name": "Siting"
   },
   "plugins": [
     {
