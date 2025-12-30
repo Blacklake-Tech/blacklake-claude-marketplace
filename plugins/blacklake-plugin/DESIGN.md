@@ -77,14 +77,18 @@ graph TB
     Agent -->|自动发现| Skill1[db-common Skill]
     Agent -->|自动发现| Skill2[db-metadata Skill]
     Agent -->|自动发现| Skill3[db-openapi Skill]
+    Agent -->|自动发现| Skill4[es-log Skill]
     Skill1 -->|使用| MCP[MCP Tools]
     Skill2 -->|使用| MCP
     Skill3 -->|使用| MCP
+    Skill4 -->|使用| Shell[Shell/curl]
     MCP -->|执行| DB[(数据库)]
+    Shell -->|执行| ES[(Elasticsearch)]
     
     Common[common/COMMON.md] -.->|符号链接| Skill1
     Common -.->|符号链接| Skill2
     Common -.->|符号链接| Skill3
+    Common -.->|符号链接| Skill4
 ```
 
 ### 2.2 数据流
@@ -111,13 +115,14 @@ Agent 整合结果并输出
 
 ### 3.1 Skills 列表
 
-| Skill | 数据库 | 主要功能 |
-|-------|--------|---------|
+| Skill | 数据库/系统 | 主要功能 |
+|-------|-----------|---------|
 | db-common | 通用 | 查询工作流程、SQL 模板、结果分析 |
 | db-user | v3_user | 租户和组织信息查询 |
 | db-openapi | v3_openapi | 连接器和 API 配置查询 |
 | db-metadata | v3_metadata | 对象编码、按钮、事件配置查询 |
 | db-e-report | v3_e-report | 数据分析告警配置查询 |
+| es-log | Elasticsearch | ES 日志查询和写入、造数据工作流程 |
 
 ### 3.2 Skills 结构
 
