@@ -12,7 +12,7 @@
 
 ```json
 {
-  "name": "claude-marketplace",
+  "name": "blacklake-claude-marketplace",
   "version": "1.0.4",  // 主版本号
   ...
 }

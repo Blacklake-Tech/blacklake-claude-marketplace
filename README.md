@@ -4,7 +4,7 @@ Claude Code 插件市场项目，提供代码开发和 OP 平台相关的插件�
 
 ## 项目简介
 
-`claude-marketplace` 是一个 Claude Code 插件市场，包含多个核心插件：
+`blacklake-claude-marketplace` 是一个 Claude Code 插件市场，包含多个核心插件：
 
 - **coder-flow**：流程开发插件（designer、developer agents）
 - **coder-web**：Web 开发插件（frontend-html、frontend-react agents）
@@ -32,13 +32,13 @@ claude-marketplace/
 
 ```bash
 # 添加市场
-/plugin marketplace add Blacklake-Tech/claude-marketplace
+/plugin marketplace add Blacklake-Tech/blacklake-claude-marketplace
 
 # 安装插件
-/plugin install op-plugin@claude-marketplace
-/plugin install coder-flow@claude-marketplace
-/plugin install coder-web@claude-marketplace
-/plugin install coder-explore@claude-marketplace
+/plugin install op-plugin@blacklake-claude-marketplace
+/plugin install coder-flow@blacklake-claude-marketplace
+/plugin install coder-web@blacklake-claude-marketplace
+/plugin install coder-explore@blacklake-claude-marketplace
 
 # 或交互式浏览并安装
 /plugin
@@ -56,10 +56,10 @@ claude-marketplace/
 
 ```bash
 # 直接从 GitHub 安装插件
-/plugin install op-plugin@github:Blacklake-Tech/claude-marketplace
-/plugin install coder-flow@github:Blacklake-Tech/claude-marketplace
-/plugin install coder-web@github:Blacklake-Tech/claude-marketplace
-/plugin install coder-explore@github:Blacklake-Tech/claude-marketplace
+/plugin install op-plugin@github:Blacklake-Tech/blacklake-claude-marketplace
+/plugin install coder-flow@github:Blacklake-Tech/blacklake-claude-marketplace
+/plugin install coder-web@github:Blacklake-Tech/blacklake-claude-marketplace
+/plugin install coder-explore@github:Blacklake-Tech/blacklake-claude-marketplace
 ```
 
 ### 方式三：项目内自动识别
@@ -68,10 +68,10 @@ claude-marketplace/
 
 ```bash
 # 克隆到项目目录
-git clone git@github.com:Blacklake-Tech/claude-marketplace.git plugins/claude-marketplace
+git clone git@github.com:Blacklake-Tech/blacklake-claude-marketplace.git plugins/claude-marketplace
 
 # 或使用 submodule
-git submodule add git@github.com:Blacklake-Tech/claude-marketplace.git plugins/claude-marketplace
+git submodule add git@github.com:Blacklake-Tech/blacklake-claude-marketplace.git plugins/claude-marketplace
 
 # 启动 Claude Code，插件会自动加载
 claude
@@ -145,13 +145,13 @@ claude --debug
 
 ```bash
 # 删除市场（不会删除已安装的插件）
-/plugin marketplace remove Blacklake-Tech/claude-marketplace
+/plugin marketplace remove Blacklake-Tech/blacklake-claude-marketplace
 
 # 删除插件（需单独删除）
-/plugin uninstall op-plugin@claude-marketplace
-/plugin uninstall coder-flow@claude-marketplace
-/plugin uninstall coder-web@claude-marketplace
-/plugin uninstall coder-explore@claude-marketplace
+/plugin uninstall op-plugin@blacklake-claude-marketplace
+/plugin uninstall coder-flow@blacklake-claude-marketplace
+/plugin uninstall coder-web@blacklake-claude-marketplace
+/plugin uninstall coder-explore@blacklake-claude-marketplace
 
 # 删除 MCP
 /mcp remove <mcp-name>

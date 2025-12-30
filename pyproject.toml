@@ -1,5 +1,5 @@
 [project]
-name = "claude-marketplace"
+name = "blacklake-claude-marketplace"
 version = "0.1.0"
 description = "Claude Code plugins marketplace"
 requires-python = ">=3.10"
@@ -12,5 +12,5 @@ build-backend = "hatchling.build"
 packages = ["plugins"]
 
 [tool.hatch.build.targets.wheel.sources]
-"plugins" = "claude_marketplace"
+"plugins" = "blacklake_claude_marketplace"
 
