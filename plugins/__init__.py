@@ -1,4 +1,4 @@
-"""claude-marketplace - Claude Code plugins"""
+"""blacklake-claude-marketplace - Claude Code plugins"""
 from pathlib import Path
 
 __version__ = "0.1.0"

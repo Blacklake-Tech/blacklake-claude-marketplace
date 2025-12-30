@@ -63,16 +63,16 @@ Blacklake 公司内部运维辅助工具插件，提供工作流排查、连接�
 
 ```bash
 # 添加市场
-/plugin marketplace add Blacklake-Tech/claude-marketplace
+/plugin marketplace add Blacklake-Tech/blacklake-claude-marketplace
 
 # 安装插件
-/plugin install blacklake_plugin@claude-marketplace
+/plugin install blacklake_plugin@blacklake-claude-marketplace
 ```
 
 ### 方式二：GitHub 直接安装
 
 ```bash
-/plugin install blacklake_plugin@github:Blacklake-Tech/claude-marketplace
+/plugin install blacklake_plugin@github:Blacklake-Tech/blacklake-claude-marketplace
 ```
 
 ### 方式三：项目内自动识别
