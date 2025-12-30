@@ -1,13 +1,9 @@
 ---
 name: es-log
-description: ES 日志查询和写入能力，支持从线上查询数据后写入 feature/test 环境进行造数据。使用 curl 命令执行查询和写入操作。
+description: ES 日志查询和写入能力，支持接口日志、外部接口日志、事件日志、中间表SQL日志的查询和写入。支持从线上查询数据后写入 feature/test 环境进行造数据。使用 curl 命令执行查询和写入操作。
 ---
 
-# ES 日志查询和写入
-
-## 【通用规范】
-
-参考：[通用规范](./COMMON.md)
+# ES 日志查询和写入 1940
 
 ## 【环境配置】
 
@@ -27,23 +23,17 @@ description: ES 日志查询和写入能力，支持从线上查询数据后写�
 
 #### 支持写入的索引（feature/test 造数据）
 
-| 类型 | 索引基础名 | 通配符模式 |
-|------|-----------|-----------|
-| 接口日志 | `http-access-log` | `http-access-log-{env}-*` |
-| 外部接口日志 | `external-access-log` | `external-access-log-{env}-*` |
-| 事件日志 | `event-retry-log` | `event-retry-log-{env}-*` |
-| 中间表SQL日志 | `mybatis-sql-log` | `mybatis-sql-log-{env}-*` |
+| 类型 | 索引（通配符） |
+|------|-----------|
+| 接口日志 | `http-access-log-{env}-openapi-domain-*` |
+| 外部接口日志 | `external-access-log-{env}-*` |
+| 事件日志 | `event-retry-log-{env}-*` |
+| 中间表SQL日志 | `mybatis-sql-log-{env}-*` |
 
 **说明**：
 - `{env}` 为环境后缀：`v3master`、`hwv3master`、`v3feature`、`v3test`
 - 使用通配符 `*` 匹配日期部分，避免硬编码具体日期
 - 接口日志索引包含 domain 信息，如：`http-access-log-v3feature-openapi-domain-*`
-
-#### 仅供查询的索引（排查场景）
-
-- 阿里：`http-access-log-v3master-*`
-- 华为：`http-access-log-hwv3master-*`
-- 国泰：`http-access-log-v3master-*`
 
 ## 【查询模板】
 
@@ -63,45 +53,41 @@ curl --location 'http://{kibana_host}/api/console/proxy?path={index_pattern}/_se
 
 **参数说明**：
 - `{kibana_host}`：从环境配置表中选择对应的 Kibana 地址
-- `{index_pattern}`：使用通配符模式，如 `http-access-log-v3master-*`
+- `{index_pattern}`：使用通配符模式，如 `http-access-log-v3master-openapi-domain-*`
 
-### 条件查询示例
+### 常用字段查询
 
-```bash
-# 按时间范围查询
-curl --location 'http://{kibana_host}/api/console/proxy?path={index_pattern}/_search&method=GET' \
---header 'kbn-xsrf: true' \
---header 'Content-Type: application/json' \
---data '{
-  "size": 100,
-  "query": {
-    "bool": {
-      "must": [
-        {"range": {"@timestamp": {"gte": "now-1h"}}}
-      ]
-    }
-  },
-  "sort": [{"@timestamp": {"order": "desc"}}]
-}'
-```
+#### 字段说明
+
+| 字段 | 类型 | 说明 | 使用场景 |
+|------|------|------|---------|
+| `uuid.keyword` | keyword | 文档唯一标识（**常说的 "id 查询"**） | 精确查找特定文档 |
+| `x-org-id` | long | 组织 ID | 按租户过滤数据 |
+| `x-user-id` | keyword | 用户 ID | 按用户过滤数据 |
+| `uri` | text | 接口路径 | 模糊匹配接口地址 |
+
+**查询类型说明**：
+- `term`：精确匹配，用于 keyword、数字等类型字段
+- `match`：全文搜索，用于 text 类型字段，支持分词匹配
+
+#### 根据 uuid 查询数据
 
 ```bash
-# 按 orgId 查询
 curl --location 'http://{kibana_host}/api/console/proxy?path={index_pattern}/_search&method=GET' \
 --header 'kbn-xsrf: true' \
 --header 'Content-Type: application/json' \
 --data '{
   "size": 10,
   "query": {
-    "bool": {
-      "must": [
-        {"term": {"orgId": {org_id}}}
-      ]
-    }
-  },
-  "sort": [{"@timestamp": {"order": "desc"}}]
+    "term": { "uuid.keyword": "test-uuid-12345" }
+  }
 }'
 ```
+
+**其他字段查询片段**（可替换到 query 部分使用）：
+- `x-org-id`: `"term": { "x-org-id": 10162960 }`
+- `x-user-id`: `"term": { "x-user-id": "1647315351904018" }`
+- `uri`: `"match": { "uri": "callback-demo-feature" }`
 
 ## 【写入模板】
 
@@ -112,38 +98,20 @@ curl --location 'http://{kibana_host}/api/console/proxy?path={index_pattern}/_se
 curl --location 'http://{kibana_host}/api/console/proxy?path={index}/_doc/{id}&method=PUT' \
 --header 'kbn-xsrf: true' \
 --header 'Content-Type: application/json' \
---data '{...文档内容...}'
+--data '{...从查询结果 _source 复制的完整数据...}'
 ```
 
 **参数说明**：
 - `{kibana_host}`：仅限 `kibana.ali-test.blacklake.tech`
 - `{index}`：完整索引名（包含日期），如 `http-access-log-v3feature-openapi-domain-2025-12-30`
 - `{id}`：文档的 `_id`，从查询结果中获取
-- 文档内容：从查询结果的 `_source` 字段获取
+- **文档内容**：**完全按照查询结果的 `_source` 字段原样复制**，不要手动修改字段
 
 ## 【造数据工作流程】
 
 ### 步骤 1：从线上查询目标数据
 
-使用查询模板从生产环境获取数据：
-
-```bash
-# 示例：从阿里生产环境查询接口日志
-curl --location 'http://kibana.ali-prod.blacklake.tech/api/console/proxy?path=http-access-log-v3master-*/_search&method=GET' \
---header 'kbn-xsrf: true' \
---header 'Content-Type: application/json' \
---data '{
-  "size": 1,
-  "query": {
-    "bool": {
-      "must": [
-        {"term": {"orgId": 123456}}
-      ]
-    }
-  },
-  "sort": [{"@timestamp": {"order": "desc"}}]
-}'
-```
+使用查询模板从生产环境获取数据（参考"根据 uuid 查询数据"示例）。
 
 记录查询结果中的：
 - `_id`：文档 ID
@@ -162,127 +130,10 @@ curl --location 'http://kibana.ali-prod.blacklake.tech/api/console/proxy?path=ht
 
 **示例确认对话**：
 ```
-从线上查询到的数据 orgId 为：123456
-请确认：
-1. 这个 orgId 是否正确？
-2. 目标环境（feature/test）的 orgId 是否也是 123456？
-3. 是否需要修改 orgId？
-
-请明确回复"确认写入"后，我将执行写入操作。
-```
-
-### 步骤 3：转换索引名称
-
-将生产环境索引名转换为目标环境索引名：
-
-**转换规则**：
-- 阿里生产 → Feature：`v3master` → `v3feature`
-- 阿里生产 → Test：`v3master` → `v3test`
-- 华为生产 → Feature：`hwv3master` → `v3feature`
-- 华为生产 → Test：`hwv3master` → `v3test`
-
-**示例**：
-```
-原始索引：http-access-log-v3master-openapi-domain-2025-12-30
-目标索引（Feature）：http-access-log-v3feature-openapi-domain-2025-12-30
-目标索引（Test）：http-access-log-v3test-openapi-domain-2025-12-30
-```
-
-### 步骤 4：写入数据
-
-使用 PUT 方法写入数据，保留原始 `_id`：
-
-```bash
-# 示例：写入到 Feature 环境
-curl --location 'http://kibana.ali-test.blacklake.tech/api/console/proxy?path=http-access-log-v3feature-openapi-domain-2025-12-30/_doc/{原始_id}&method=PUT' \
---header 'kbn-xsrf: true' \
---header 'Content-Type: application/json' \
---data '{
-  "orgId": 123456,
-  "@timestamp": "2025-12-30T10:30:00.000Z",
-  "request": "/api/v1/users",
-  "method": "GET",
-  "status": 200,
-  ...其他字段...
-}'
-```
-
-### 步骤 5：验证结果
-
-查询目标环境确认数据已写入：
-
-```bash
-# 验证写入结果
-curl --location 'http://kibana.ali-test.blacklake.tech/api/console/proxy?path=http-access-log-v3feature-openapi-domain-*/_search&method=GET' \
---header 'kbn-xsrf: true' \
---header 'Content-Type: application/json' \
---data '{
-  "size": 1,
-  "query": {
-    "bool": {
-      "must": [
-        {"term": {"_id": "{原始_id}"}},
-        {"term": {"orgId": 123456}}
-      ]
-    }
-  }
-}'
-```
-
-## 【完整造数据示例】
-
-### 场景：将阿里生产的接口日志复制到 Feature 环境
-
-#### 1. 查询线上数据
-
-```bash
-curl --location 'http://kibana.ali-prod.blacklake.tech/api/console/proxy?path=http-access-log-v3master-openapi-domain-*/_search&method=GET' \
---header 'kbn-xsrf: true' \
---header 'Content-Type: application/json' \
---data '{
-  "size": 1,
-  "query": {
-    "bool": {
-      "must": [
-        {"term": {"orgId": 123456}},
-        {"term": {"request": "/api/v1/users"}}
-      ]
-    }
-  },
-  "sort": [{"@timestamp": {"order": "desc"}}]
-}'
-```
-
-**查询结果示例**：
-```json
-{
-  "hits": {
-    "hits": [
-      {
-        "_index": "http-access-log-v3master-openapi-domain-2025-12-30",
-        "_id": "abc123xyz",
-        "_source": {
-          "orgId": 123456,
-          "@timestamp": "2025-12-30T10:30:00.000Z",
-          "request": "/api/v1/users",
-          "method": "GET",
-          "status": 200,
-          "responseTime": 150
-        }
-      }
-    ]
-  }
-}
-```
-
-#### 2. 确认 orgId（必须）
-
-**⚠️ 向用户确认**：
-```
 查询到的数据信息：
 - orgId: 123456
 - 索引: http-access-log-v3master-openapi-domain-2025-12-30
-- 文档ID: abc123xyz
+- 文档ID: test-doc-id-12345
 
 即将写入到 Feature 环境：
 - 目标索引: http-access-log-v3feature-openapi-domain-2025-12-30
@@ -296,12 +147,36 @@ curl --location 'http://kibana.ali-prod.blacklake.tech/api/console/proxy?path=ht
 请明确回复"确认写入"后，我将执行写入操作。
 ```
 
-#### 3. 写入到 Feature 环境
+### 步骤 3：转化成对应的目标索引并写入数据
 
-**用户确认后**，执行写入：
+将生产环境索引名转换为目标环境索引名，然后写入数据：
 
+**转换规则**：
+- 阿里生产 → Feature：`v3master` → `v3feature`
+- 阿里生产 → Test：`v3master` → `v3test`
+- 华为生产 → Feature：`hwv3master` → `v3feature`
+- 华为生产 → Test：`hwv3master` → `v3test`
+
+**转换示例**：
+```
+原始索引：http-access-log-v3master-openapi-domain-2025-12-30
+目标索引（Feature）：http-access-log-v3feature-openapi-domain-2025-12-30
+目标索引（Test）：http-access-log-v3test-openapi-domain-2025-12-30
+```
+
+使用 PUT 方法写入数据，保留原始 `_id`：
+
+**模板命令**：
 ```bash
-curl --location 'http://kibana.ali-test.blacklake.tech/api/console/proxy?path=http-access-log-v3feature-openapi-domain-2025-12-30/_doc/abc123xyz&method=PUT' \
+curl --location 'http://kibana.ali-test.blacklake.tech/api/console/proxy?path={目标索引}/_doc/{原始_id}&method=PUT' \
+--header 'kbn-xsrf: true' \
+--header 'Content-Type: application/json' \
+--data '{...从步骤1查询结果的 _source 字段完整复制的数据...}'
+```
+
+**完整示例**：
+```bash
+curl --location 'http://kibana.ali-test.blacklake.tech/api/console/proxy?path=http-access-log-v3feature-openapi-domain-2025-12-30/_doc/test-doc-id-12345&method=PUT' \
 --header 'kbn-xsrf: true' \
 --header 'Content-Type: application/json' \
 --data '{
@@ -314,29 +189,13 @@ curl --location 'http://kibana.ali-test.blacklake.tech/api/console/proxy?path=ht
 }'
 ```
 
-#### 4. 验证写入结果
+**重要**：`--data` 中的内容应该是从步骤 1 查询结果中 `_source` 字段完整复制的 JSON 数据，保持所有字段不变。
 
-```bash
-curl --location 'http://kibana.ali-test.blacklake.tech/api/console/proxy?path=http-access-log-v3feature-openapi-domain-*/_search&method=GET' \
---header 'kbn-xsrf: true' \
---header 'Content-Type: application/json' \
---data '{
-  "size": 1,
-  "query": {
-    "bool": {
-      "must": [
-        {"term": {"_id": "abc123xyz"}},
-        {"term": {"orgId": 123456}}
-      ]
-    }
-  }
-}'
-```
+## 【示例】
 
-**预期结果**：
-- 返回刚写入的文档
-- `_index` 为 `http-access-log-v3feature-openapi-domain-2025-12-30`
-- `_source` 内容与写入的数据一致
+### 示例：根据 uuid 查询数据
+
+参考"查询模板"章节中的"根据 uuid 查询数据"部分。
 
 ## 【注意事项】
 
@@ -366,3 +225,48 @@ curl --location 'http://kibana.ali-test.blacklake.tech/api/console/proxy?path=ht
    - 写入时确保包含所有必要字段
    - 特别注意 `@timestamp` 字段格式：ISO 8601 格式
    - 保留原始 `_id` 以便追溯数据来源
+
+7. **数据验证（可选）**：
+   - 写入后可以查询目标环境确认数据已写入（非必须流程）
+   - 使用以下命令验证：
+
+   **模板命令**：
+   ```bash
+   curl --location 'http://kibana.ali-test.blacklake.tech/api/console/proxy?path={目标索引模式}/_search&method=GET' \
+   --header 'kbn-xsrf: true' \
+   --header 'Content-Type: application/json' \
+   --data '{
+     "size": 1,
+     "query": {
+       "bool": {
+         "must": [
+           {"term": {"_id": "{原始_id}"}},
+           {"term": {"orgId": {orgId}}}
+         ]
+       }
+     }
+   }'
+   ```
+
+   **完整示例**：
+   ```bash
+   curl --location 'http://kibana.ali-test.blacklake.tech/api/console/proxy?path=http-access-log-v3feature-openapi-domain-*/_search&method=GET' \
+   --header 'kbn-xsrf: true' \
+   --header 'Content-Type: application/json' \
+   --data '{
+     "size": 1,
+     "query": {
+       "bool": {
+         "must": [
+           {"term": {"_id": "test-doc-id-12345"}},
+           {"term": {"orgId": 123456}}
+         ]
+       }
+     }
+   }'
+   ```
+
+   **预期结果**：
+   - 返回刚写入的文档
+   - `_index` 为目标索引（如 `http-access-log-v3feature-openapi-domain-2025-12-30`）
+   - `_source` 内容与写入的数据一致
