@@ -28,7 +28,7 @@ description: ES 日志查询和写入能力，支持接口日志、外部接口�
 | 类型 | 索引模式（精确匹配） | 说明 |
 |------|------------------|------|
 | 接口日志 | `http-access-log-{env}-openapi-domain-*` | 一定包含 `openapi-domain` |
-| 外部接口日志 | `external-access-log-{env}-202*` | 直接是环境+日期，避免匹配到其他类型 |
+| 外部接口日志 | `external-access-log-{env}-integration-*` | 一定包含 `integration` |
 | 事件日志 | `event-retry-log-{env}-openapi-domain-*` | 一定包含 `openapi-domain` |
 | 中间表SQL日志 | `mybatis-sql-log-{env}-integration-*` | 一定包含 `integration` |
 
@@ -38,14 +38,13 @@ description: ES 日志查询和写入能力，支持接口日志、外部接口�
 
 **实际索引格式示例**：
 - 接口日志：`http-access-log-v3master-openapi-domain-v3master-2025-12-31`
-- 外部接口日志：`external-access-log-v3master-2025-12-05`
+- 外部接口日志：`external-access-log-v3master-integration-2025-12-05`
 - 事件日志：`event-retry-log-v3master-openapi-domain-v3master-2025-11-22`
 - 中间表SQL日志：`mybatis-sql-log-v3master-integration-2025-12-28`
 
 **注意**：
 - 接口日志和事件日志一定包含 `openapi-domain`
-- 中间表SQL日志一定包含 `integration`
-- 外部接口日志使用 `202*` 日期格式避免误匹配到其他类型
+- 中间表SQL日志和外部接口日志一定包含 `integration`
 
 ## 【查询模板】
 
