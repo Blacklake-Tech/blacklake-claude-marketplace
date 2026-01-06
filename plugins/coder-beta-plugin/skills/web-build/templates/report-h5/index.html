@@ -1,0 +1,419 @@
+<!-- 智筑报工页面 -->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>智筑报工页面</title>
+    <style>
+        /* CSS Reset & Base */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background-color: #f5f7fa;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            line-height: 1.5;
+        }
+
+        /* Utility Classes */
+        .flex { display: flex; }
+        .items-center { align-items: center; }
+        .items-start { align-items: flex-start; }
+        .justify-between { justify-content: space-between; }
+        .justify-center { justify-content: center; }
+        .flex-col { flex-direction: column; }
+        .flex-shrink-0 { flex-shrink: 0; }
+        .space-x-2 > * + * { margin-left: 0.5rem; }
+        .space-y-1 > * + * { margin-top: 0.25rem; }
+        .space-y-2 > * + * { margin-top: 0.5rem; }
+        .space-y-3 > * + * { margin-top: 0.75rem; }
+        .hidden { display: none; }
+        .cursor-pointer { cursor: pointer; }
+        .w-full { width: 100%; }
+        .max-w-md { max-width: 28rem; margin-left: auto; margin-right: auto; }
+        .max-h-60 { max-height: 15rem; }
+        .overflow-y-auto { overflow-y: auto; }
+        .text-center { text-align: center; }
+        .text-right { text-align: right; }
+
+        /* Spacing */
+        .p-1 { padding: 0.25rem; }
+        .p-3 { padding: 0.75rem; }
+        .p-4 { padding: 1rem; }
+        .p-5 { padding: 1.25rem; }
+        .px-4 { padding-left: 1rem; padding-right: 1rem; }
+        .px-6 { padding-left: 1.5rem; padding-right: 1.5rem; }
+        .py-3 { padding-top: 0.75rem; padding-bottom: 0.75rem; }
+        .py-3\.5 { padding-top: 0.875rem; padding-bottom: 0.875rem; }
+        .pb-4 { padding-bottom: 1rem; }
+        .pb-10 { padding-bottom: 2.5rem; }
+        .pl-1 { padding-left: 0.25rem; }
+        .mb-1 { margin-bottom: 0.25rem; }
+        .mb-4 { margin-bottom: 1rem; }
+        .mb-6 { margin-bottom: 1.5rem; }
+        .mb-8 { margin-bottom: 2rem; }
+        .mt-1 { margin-top: 0.25rem; }
+        .mt-6 { margin-top: 1.5rem; }
+        .mt-0\.5 { margin-top: 0.125rem; }
+        .mx-auto { margin-left: auto; margin-right: auto; }
+
+        /* Typography */
+        .text-xs { font-size: 0.75rem; }
+        .text-sm { font-size: 0.875rem; }
+        .text-base { font-size: 1rem; }
+        .text-lg { font-size: 1.125rem; }
+        .font-medium { font-weight: 500; }
+        .font-bold { font-weight: 700; }
+        .font-mono { font-family: monospace; }
+        .leading-none { line-height: 1; }
+
+        /* Colors */
+        .bg-white { background-color: #ffffff; }
+        .bg-blue-600 { background-color: #2563eb; }
+        .bg-gray-50 { background-color: #f9fafb; }
+        .bg-gray-800 { background-color: #1f2937; }
+        .bg-black { background-color: rgba(0, 0, 0, 0.5); }
+        .text-white { color: #ffffff; }
+        .text-gray-400 { color: #9ca3af; }
+        .text-gray-500 { color: #6b7280; }
+        .text-gray-600 { color: #4b5563; }
+        .text-gray-800 { color: #1f2937; }
+        .text-blue-600 { color: #2563eb; }
+        .text-green-400 { color: #4ade80; }
+        .text-red-400 { color: #f87171; }
+
+        /* Borders */
+        .border { border-width: 1px; }
+        .border-b { border-bottom-width: 1px; }
+        .border-l-4 { border-left-width: 4px; }
+        .border-gray-100 { border-color: #f3f4f6; }
+        .border-gray-200 { border-color: #e5e7eb; }
+        .border-blue-300 { border-color: #93c5fd; }
+        .border-blue-600 { border-color: #2563eb; }
+        .border-transparent { border-color: transparent; }
+        .rounded-lg { border-radius: 0.5rem; }
+        .rounded-xl { border-radius: 0.75rem; }
+        .rounded-2xl { border-radius: 1rem; }
+        .rounded-t-2xl { border-top-left-radius: 1rem; border-top-right-radius: 1rem; }
+        .rounded-full { border-radius: 9999px; }
+
+        /* Shadows */
+        .card-shadow { box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08); }
+        .shadow-md { box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
+        .shadow-lg { box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1); }
+
+        /* Positioning */
+        .fixed { position: fixed; }
+        .sticky { position: sticky; }
+        .inset-0 { top: 0; right: 0; bottom: 0; left: 0; }
+        .top-0 { top: 0; }
+        .bottom-10 { bottom: 2.5rem; }
+        .left-1\/2 { left: 50%; }
+        .z-10 { z-index: 10; }
+        .z-50 { z-index: 50; }
+
+        /* Transforms */
+        .transform { transform: translate(var(--tw-translate-x, 0), var(--tw-translate-y, 0)); }
+        .-translate-x-1\/2 { transform: translateX(-50%); }
+        .translate-y-full { transform: translateY(100%); }
+        .translate-y-0 { transform: translateY(0); }
+        .translate-y-10 { transform: translateY(2.5rem); }
+
+        /* Transitions */
+        .transition-all { transition: all 0.3s; }
+        .transition-opacity { transition: opacity 0.3s; }
+        .transition-transform { transition: transform 0.3s; }
+        .duration-300 { transition-duration: 300ms; }
+
+        /* Opacity */
+        .opacity-0 { opacity: 0; }
+        .pointer-events-none { pointer-events: none; }
+
+        /* Hover & Active */
+        .bg-blue-600:hover { background-color: #1d4ed8; }
+        .bg-gray-50:active, .bg-gray-50.active { background-color: #eff6ff; }
+        .border-transparent:hover { border-color: #93c5fd; }
+        .btn-active:active {
+            transform: scale(0.98);
+            opacity: 0.9;
+        }
+
+        /* Icons (simple SVG replacements) */
+        .icon {
+            display: inline-block;
+            width: 1.25rem;
+            height: 1.25rem;
+            vertical-align: middle;
+        }
+        .icon-chevron-right::after { content: '›'; font-size: 1.5rem; }
+        .icon-check::after { content: '✓'; }
+        .icon-x::after { content: '×'; font-size: 1.5rem; }
+        .icon-clipboard::after { content: '📋'; }
+        .icon-alert::after { content: '⚠'; }
+
+        /* Responsive - Mobile First */
+        @media (min-width: 640px) {
+            .sm\:items-center { align-items: center; }
+            .sm\:rounded-xl { border-radius: 0.75rem; }
+            .sm\:translate-y-0 { transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="pb-10">
+
+    <!-- 顶部导航/标题 -->
+    <header class="bg-white sticky top-0 z-10 border-b border-gray-200 px-4 py-3 text-center">
+        <h1 class="text-lg font-bold text-gray-800">智筑报工页面</h1>
+    </header>
+
+    <main class="p-4 max-w-md mx-auto">
+
+        <!-- 上部：工单信息区域 -->
+        <div class="bg-white rounded-xl card-shadow p-5 mb-6 border border-gray-200" style="border-width: 2px;">
+            <!-- 生产工单选择行 -->
+            <div onclick="openOrderSelector()" class="flex items-center justify-between border-b border-gray-100 pb-4 mb-4 cursor-pointer btn-active">
+                <div class="flex flex-col">
+                    <span class="text-gray-800 font-bold text-base mb-1">生产工单</span>
+                    <!-- 模拟未选择或已选择的状态 -->
+                    <span id="selectedOrderText" class="text-gray-400 text-sm">请选择生产工单</span>
+                </div>
+                <span class="icon icon-chevron-right text-gray-400"></span>
+            </div>
+
+            <!-- 物料信息 -->
+            <div class="space-y-3">
+                <div class="flex items-start">
+                    <span class="text-gray-500 text-sm w-24 flex-shrink-0">加工物料名称：</span>
+                    <span id="materialName" class="text-gray-800 text-sm font-medium">--</span>
+                </div>
+                <div class="flex items-start">
+                    <span class="text-gray-500 text-sm w-24 flex-shrink-0">加工物料编号：</span>
+                    <span id="materialCode" class="text-gray-800 text-sm font-medium">--</span>
+                </div>
+                <!-- 隐藏的任务ID字段，模拟查询到的任务 -->
+                <div id="taskIdContainer" class="hidden flex items-start">
+                    <span class="text-gray-500 text-sm w-24 flex-shrink-0">关联任务ID：</span>
+                    <span id="taskIdDisplay" class="text-gray-500 text-xs font-mono mt-0.5">--</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 中部：报工按钮 -->
+        <button onclick="handleAutoReport()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 px-4 rounded-xl shadow-md btn-active flex items-center justify-center space-x-2 mb-8" style="border: 2px solid #1d4ed8;">
+            <span class="icon icon-clipboard"></span>
+            <span>点 此 报 工 (自动 10 个)</span>
+        </button>
+
+        <!-- 下部：报工记录 -->
+        <div>
+            <h2 class="text-lg font-bold text-gray-800 mb-4 pl-1 border-l-4 border-blue-600 leading-none">报工记录</h2>
+
+            <div id="recordList" class="space-y-3">
+                <!-- 记录项 1 (草图数据) -->
+                <div class="bg-white rounded-lg p-4 border border-gray-200 card-shadow flex justify-between items-center" style="border-width: 2px;">
+                    <div class="space-y-1">
+                        <div class="text-gray-500 text-sm">报工数量</div>
+                        <div class="text-gray-500 text-sm">报工时间</div>
+                    </div>
+                    <div class="text-right space-y-1">
+                        <div class="text-gray-800 font-bold text-lg">10 个</div>
+                        <div class="text-gray-600 text-sm">2025.11.25 16:27</div>
+                    </div>
+                </div>
+
+                <!-- 记录项 2 (草图数据) -->
+                <div class="bg-white rounded-lg p-4 border border-gray-200 card-shadow flex justify-between items-center" style="border-width: 2px;">
+                    <div class="space-y-1">
+                        <div class="text-gray-500 text-sm">报工数量</div>
+                        <div class="text-gray-500 text-sm">报工时间</div>
+                    </div>
+                    <div class="text-right space-y-1">
+                        <div class="text-gray-800 font-bold text-lg">10 个</div>
+                        <div class="text-gray-600 text-sm">2025.11.25 15:20</div>
+                    </div>
+                </div>
+
+                <!-- 记录项 3 (草图数据) -->
+                <div class="bg-white rounded-lg p-4 border border-gray-200 card-shadow flex justify-between items-center" style="border-width: 2px;">
+                    <div class="space-y-1">
+                        <div class="text-gray-500 text-sm">报工数量</div>
+                        <div class="text-gray-500 text-sm">报工时间</div>
+                    </div>
+                    <div class="text-right space-y-1">
+                        <div class="text-gray-800 font-bold text-lg">10 个</div>
+                        <div class="text-gray-600 text-sm">2025.11.25 14:11</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 到底提示 -->
+            <div class="text-center text-gray-400 text-xs mt-6">
+                - 暂无更多记录 -
+            </div>
+        </div>
+
+    </main>
+
+    <!-- 模拟弹窗：选择工单 -->
+    <div id="orderModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-end sm:items-center justify-center transition-opacity duration-300">
+        <div class="bg-white w-full max-w-md rounded-t-2xl sm:rounded-xl p-5 transform transition-transform duration-300 translate-y-full sm:translate-y-0 shadow-lg" id="orderModalContent" style="border: 2px solid #e5e7eb;">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-bold">选择生产工单</h3>
+                <button onclick="closeOrderModal()" class="text-gray-500 p-1"><span class="icon icon-x"></span></button>
+            </div>
+            <div class="space-y-2 max-h-60 overflow-y-auto">
+                <div onclick="selectOrder('MO-20251125-001', '高强度螺栓 M24', 'MT-8823-A', 'TASK-001-A')" class="p-3 bg-gray-50 rounded-lg active:bg-blue-50 cursor-pointer border border-transparent hover:border-blue-300" style="border-width: 2px;">
+                    <div class="font-bold text-gray-800">MO-20251125-001</div>
+                    <div class="text-xs text-gray-500 mt-1">物料：高强度螺栓 M24</div>
+                </div>
+                <div onclick="selectOrder('MO-20251125-002', '精密齿轮 Z-50', 'MT-5501-B', 'TASK-002-B')" class="p-3 bg-gray-50 rounded-lg active:bg-blue-50 cursor-pointer border border-transparent hover:border-blue-300" style="border-width: 2px;">
+                    <div class="font-bold text-gray-800">MO-20251125-002</div>
+                    <div class="text-xs text-gray-500 mt-1">物料：精密齿轮 Z-50</div>
+                </div>
+                <div onclick="selectOrder('MO-20251125-003', '传动轴承 AX-99', 'MT-1209-C', 'TASK-003-C')" class="p-3 bg-gray-50 rounded-lg active:bg-blue-50 cursor-pointer border border-transparent hover:border-blue-300" style="border-width: 2px;">
+                    <div class="font-bold text-gray-800">MO-20251125-003</div>
+                    <div class="text-xs text-gray-500 mt-1">物料：传动轴承 AX-99</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast 提示组件 (修改了结构以支持动态图标) -->
+    <div id="toast" class="fixed bottom-10 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-6 py-3 rounded-full shadow-lg z-50 flex items-center space-x-2 transition-all duration-300 opacity-0 pointer-events-none translate-y-10" style="border: 2px solid #374151;">
+        <!-- 图标容器 -->
+        <div id="toast-icon-container">
+            <span class="icon icon-check text-green-400"></span>
+        </div>
+        <span id="toast-text" class="font-medium text-sm">报工成功</span>
+    </div>
+
+    <script>
+        // 状态变量
+        let currentOrder = null;
+
+        // --- 工单选择逻辑 ---
+        const orderModal = document.getElementById('orderModal');
+        const orderModalContent = document.getElementById('orderModalContent');
+
+        function openOrderSelector() {
+            orderModal.classList.remove('hidden');
+            setTimeout(() => {
+                orderModalContent.classList.remove('translate-y-full');
+            }, 10);
+        }
+
+        function closeOrderModal() {
+            orderModalContent.classList.add('translate-y-full');
+            setTimeout(() => {
+                orderModal.classList.add('hidden');
+            }, 300);
+        }
+
+        // 选择工单后，模拟查询到任务并展示物料信息
+        function selectOrder(orderNo, materialName, materialCode, taskId) {
+            currentOrder = { orderNo, materialName, materialCode, taskId };
+
+            // 更新 UI
+            document.getElementById('selectedOrderText').innerText = orderNo;
+            document.getElementById('selectedOrderText').classList.replace('text-gray-400', 'text-blue-600');
+            document.getElementById('selectedOrderText').classList.add('font-bold');
+
+            document.getElementById('materialName').innerText = materialName;
+            document.getElementById('materialCode').innerText = materialCode;
+
+            // 显示关联的任务ID
+            const taskContainer = document.getElementById('taskIdContainer');
+            const taskDisplay = document.getElementById('taskIdDisplay');
+            taskContainer.classList.remove('hidden');
+            taskDisplay.innerText = taskId;
+
+            closeOrderModal();
+        }
+
+        // --- 自动报工逻辑 ---
+        function handleAutoReport() {
+            // 1. 校验是否选择了工单
+            if (!currentOrder) {
+                showToast("请先选择生产工单", "error");
+                return;
+            }
+
+            // 2. 模拟自动报工过程
+            const autoAmount = 10;
+            const now = new Date();
+            const timeString = `${now.getFullYear()}.${(now.getMonth()+1).toString().padStart(2, '0')}.${now.getDate().toString().padStart(2, '0')} ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+
+            // 3. 创建记录 DOM
+            const newRecordHtml = `
+                <div class="bg-white rounded-lg p-4 border border-gray-200 card-shadow flex justify-between items-center animate-pulse-once">
+                    <div class="space-y-1">
+                        <div class="text-gray-500 text-sm">报工数量</div>
+                        <div class="text-gray-500 text-sm">报工时间</div>
+                    </div>
+                    <div class="text-right space-y-1">
+                        <div class="text-gray-800 font-bold text-lg text-blue-600">${autoAmount} 个</div>
+                        <div class="text-gray-600 text-sm">${timeString}</div>
+                    </div>
+                </div>
+            `;
+
+            // 4. 插入到列表最前面
+            const list = document.getElementById('recordList');
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = newRecordHtml;
+            const newElement = tempDiv.firstElementChild;
+
+            newElement.style.transition = "all 0.5s ease";
+            newElement.style.opacity = "0";
+            newElement.style.transform = "translateY(-10px)";
+
+            list.insertBefore(newElement, list.firstChild);
+
+            setTimeout(() => {
+                newElement.style.opacity = "1";
+                newElement.style.transform = "translateY(0)";
+            }, 50);
+
+            // 5. 显示成功提示
+            showToast("报工成功");
+        }
+
+        // --- Toast 提示逻辑 (修复了 Null 报错问题) ---
+        let toastTimeout;
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const toastIconContainer = document.getElementById('toast-icon-container'); // 使用容器获取
+            const toastText = document.getElementById('toast-text');
+
+            // 设置内容
+            toastText.innerText = message;
+
+            // 根据类型重置图标 HTML
+            if (type === 'error') {
+                toastIconContainer.innerHTML = '<span class="icon icon-alert text-red-400"></span>';
+            } else {
+                toastIconContainer.innerHTML = '<span class="icon icon-check text-green-400"></span>';
+            }
+
+            // 显示
+            toast.classList.remove('opacity-0', 'translate-y-10');
+
+            // 清除上一次的定时器
+            if (toastTimeout) clearTimeout(toastTimeout);
+
+            // 2秒后自动隐藏
+            toastTimeout = setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-10');
+            }, 2000);
+        }
+
+        // 点击遮罩层关闭弹窗
+        window.onclick = function(event) {
+            if (event.target == orderModal) {
+                closeOrderModal();
+            }
+        }
+    </script>
+</body>
+</html>

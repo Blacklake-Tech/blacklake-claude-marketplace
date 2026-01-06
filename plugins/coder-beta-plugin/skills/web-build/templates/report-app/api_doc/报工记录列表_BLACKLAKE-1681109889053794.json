@@ -1,0 +1,128 @@
+{
+  "接口名称": "报工记录列表",
+  "接口路径": "/openapi/domain/web/v1/route/mfg/open/v1/progress_report/_list",
+  "请求方法": "POST",
+  "代码位置": "services/business.js line 718",
+  
+  "请求参数": {
+    "page": {
+      "类型": "number",
+      "必填": false,
+      "默认": 1,
+      "说明": "页码"
+    },
+    "size": {
+      "类型": "number",
+      "必填": false,
+      "默认": 200,
+      "说明": "每页数量"
+    },
+    "taskIds": {
+      "类型": "number[]",
+      "必填": false,
+      "说明": "生产任务ID列表（与 workOrderIdList 至少提供一个）"
+    },
+    "workOrderIdList": {
+      "类型": "number[]",
+      "必填": false,
+      "说明": "工单ID列表（与 taskIds 至少提供一个）"
+    },
+    "reportTimeFrom": {
+      "类型": "number",
+      "必填": false,
+      "说明": "报工时间From(闭区间)，毫秒时间戳"
+    },
+    "reportTimeTo": {
+      "类型": "number",
+      "必填": false,
+      "说明": "报工时间To(开区间)，毫秒时间戳"
+    },
+    "sorter": {
+      "类型": "array",
+      "必填": false,
+      "默认": [{"field": "reportTime", "order": "desc"}],
+      "说明": "排序条件列表",
+      "结构": [{
+        "field": "string - 排序字段（如 reportTime、taskCode）",
+        "order": "string - 排序规律（asc 升序 / desc 降序，默认 asc）"
+      }]
+    },
+    "processIdList": {
+      "类型": "number[]",
+      "必填": false,
+      "说明": "工序ID列表"
+    },
+    "executorIdList": {
+      "类型": "number[]",
+      "必填": false,
+      "说明": "可执行人ID列表"
+    },
+    "qcStatusList": {
+      "类型": "number[]",
+      "必填": false,
+      "说明": "质量状态列表"
+    }
+  },
+  
+  "响应结构": {
+    "code": "200 表示成功",
+    "message": "返回信息",
+    "data": {
+      "list": "报工记录数组",
+      "page": "当前页",
+      "total": "总条数"
+    }
+  },
+  
+  "关键响应字段 - list[]": {
+    "id": "number - 报工记录详情id",
+    "lineId": "number - 物料行id",
+    "reportRecordId": "number - 报工记录id",
+    "taskId": "number - 生产任务Id",
+    "taskCode": "string - 生产任务编号",
+    "workOrderId": "number - 工单Id",
+    "workOrderCode": "string - 工单编号（显示用）",
+    "processId": "number - 工序Id",
+    "processCode": "string - 工序编号",
+    "processName": "string - 工序名称",
+    "mainMaterialId": "number - 工单物料id",
+    "mainMaterialCode": "string - 工单物料编号",
+    "mainMaterialName": "string - 工单物料名称",
+    "materialInfo": "object - 报工物料信息",
+    "materialInfo.baseInfo.id": "number - 物料ID",
+    "materialInfo.baseInfo.name": "string - 物料名称",
+    "materialInfo.baseInfo.code": "string - 物料编码",
+    "reportBaseAmount": "object - 报工数量对象",
+    "reportBaseAmount.amount": "number - 报工数量（显示：报工数量 10个）",
+    "reportBaseAmount.unit": "object - 单位信息",
+    "reportBaseAmount.unit.name": "string - 单位名称",
+    "reportBaseAmountDisplay": "object - 报工数量显示对象",
+    "reportBaseAmountDisplay.amount": "number - 报工数量",
+    "reportBaseAmountDisplay.amountDisplay": "string - 报工数量显示文本",
+    "reportBaseAmountDisplay.unitCode": "string - 单位编码",
+    "reportBaseAmountDisplay.unitId": "number - 单位ID",
+    "reportBaseAmountDisplay.unitName": "string - 单位名称",
+    "reportTime": "number - 报工时间，毫秒时间戳（显示：报工时间 2024-11-26 14:30）",
+    "reporter": "object - 报工人员",
+    "reporter.id": "number - 报工人ID",
+    "reporter.name": "string - 报工人姓名",
+    "reporter.username": "string - 报工人用户名",
+    "producers": "array - 生产人员数组",
+    "producers[].id": "number - 生产人ID",
+    "producers[].name": "string - 生产人姓名",
+    "qcStatus": "object - 质量状态",
+    "qcStatus.code": "number - 质量状态码（1:合格 4:不合格）",
+    "qcStatus.message": "string - 质量状态描述",
+    "workHourUnit": "object - 工时单位",
+    "startTime": "number - 报工开始时间，毫秒时间戳（可选）",
+    "endTime": "number - 报工结束时间，毫秒时间戳（可选）",
+    "workHour": "number - 工时（可选）",
+    "remark": "string - 备注（可选）",
+    "reportRecordCode": "string - 报工记录编号（可选）",
+    "createdAt": "number - 创建时间戳",
+    "updatedAt": "number - 更新时间戳"
+  },
+  
+  "使用示例": "参见 services/business.js:643-752 的 getReportRecordsByTask 方法"
+}
+

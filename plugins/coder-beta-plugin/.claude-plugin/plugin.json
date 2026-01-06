@@ -1,0 +1,9 @@
+{
+  "name": "coder-beta-plugin",
+  "description": "Beta development plugin with frontend agents",
+  "version": "1.0.4",
+  "author": {
+    "name": "Your Team"
+  }
+}
+

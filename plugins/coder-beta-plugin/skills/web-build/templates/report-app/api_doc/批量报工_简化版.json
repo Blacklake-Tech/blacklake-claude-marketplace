@@ -1,0 +1,106 @@
+{
+  "接口名称": "批量报工",
+  "接口路径": "/openapi/domain/web/v1/route/mfg/open/v1/progress_report/_progress_report",
+  "请求方法": "POST",
+  "代码位置": "services/business.js line 516",
+  
+  "请求参数": {
+    "taskId": {
+      "类型": "number",
+      "必填": true,
+      "说明": "生产任务ID（从生产任务列表获取）"
+    },
+    "progressReportMaterial": {
+      "类型": "object",
+      "必填": true,
+      "说明": "报工物料对象（从报工物料列表获取）",
+      "结构": {
+        "lineId": "number - 物料行ID",
+        "materialId": "number - 物料ID",
+        "reportProcessId": "number - 报工工序ID"
+      }
+    },
+    "qcStatus": {
+      "类型": "number",
+      "必填": false,
+      "默认": 1,
+      "说明": "质量状态（1：合格 2：让步合格 3：代检 4：不合格）"
+    },
+    "reportType": {
+      "类型": "number",
+      "必填": false,
+      "默认": 2,
+      "说明": "报工方式（1：扫码报工-合格 2：记录报工-合格 3：扫码报工-不合格 4：记录报工-不合格 5：打码报工-合格 6：打码报工-不合格）"
+    },
+    "progressReportItems": {
+      "类型": "array",
+      "必填": true,
+      "说明": "报工详情数组",
+      "结构": [{
+        "executorIds": "number[] - 执行人ID列表",
+        "progressReportMaterialItems": "array - 物料报工项",
+        "progressReportMaterialItems[].reportAmount": "number - 报工数量（必填）",
+        "progressReportMaterialItems[].reportUnitId": "number - 报工单位ID（必填，从 outputMaterialUnit.id 获取）",
+        "progressReportMaterialItems[].remark": "string - 备注（可选）"
+      }]
+    },
+    "storageLocationId": {
+      "类型": "number",
+      "必填": false,
+      "说明": "仓位ID，当前预置为 1716848012872791"
+    },
+    "reportStartTime": {
+      "类型": "number",
+      "必填": false,
+      "说明": "报工开始时间（毫秒时间戳）"
+    },
+    "reportEndTime": {
+      "类型": "number",
+      "必填": false,
+      "说明": "报工结束时间（毫秒时间戳）"
+    },
+    "actualExecutorIds": {
+      "类型": "number[]",
+      "必填": false,
+      "说明": "实际执行人ID列表"
+    },
+    "actualEquipmentIds": {
+      "类型": "number[]",
+      "必填": false,
+      "说明": "设备ID列表"
+    },
+    "workHour": {
+      "类型": "number",
+      "必填": false,
+      "说明": "工时"
+    },
+    "workHourUnit": {
+      "类型": "number",
+      "必填": false,
+      "说明": "工时单位"
+    },
+    "qcDefectReasonIds": {
+      "类型": "number[]",
+      "必填": false,
+      "说明": "不良原因ID列表（质量状态为不合格时）"
+    }
+  },
+  
+  "响应结构": {
+    "code": "200 表示成功",
+    "message": "返回信息",
+    "data": {
+      "messageTraceId": "string - 消息追踪ID",
+      "progressReportRecordIds": "number[] - 报工记录ID列表"
+    }
+  },
+  
+  "关键说明": [
+    "必须先调用 getReportRequiredParams 获取 taskId、progressReportMaterial、reportUnitId 等必填参数",
+    "progressReportMaterial 对象的结构不可修改，必须从报工物料列表接口获取",
+    "reportUnitId 必须从报工物料列表的 outputMaterialUnit.id 获取"
+  ],
+  
+  "使用示例": "参见 services/business.js:406-482 的 buildReportRequestParams 方法和 submitReport 方法"
+}
+
