@@ -1,0 +1,103 @@
+{
+  "接口名称": "工单列表",
+  "接口路径": "/openapi/domain/web/v1/route/med/open/v2/work_order/base/_list",
+  "请求方法": "POST",
+  "代码位置": "services/business.js line 59",
+  
+  "请求参数": {
+    "page": {
+      "类型": "number",
+      "必填": false,
+      "默认": 1,
+      "说明": "页码"
+    },
+    "size": {
+      "类型": "number",
+      "必填": false,
+      "默认": 50,
+      "说明": "每页数量"
+    },
+    "workOrderCode": {
+      "类型": "string",
+      "必填": false,
+      "说明": "工单编号（模糊查询）"
+    },
+    "exactWorkOrderCode": {
+      "类型": "string",
+      "必填": false,
+      "说明": "工单编号（精确查询）"
+    },
+    "workOrderStatusList": {
+      "类型": "number[]",
+      "必填": false,
+      "说明": "工单业务状态列表"
+    },
+    "pauseFlag": {
+      "类型": "number",
+      "必填": false,
+      "说明": "是否暂停 0未暂停 1已暂停"
+    }
+  },
+  
+  "响应结构": {
+    "code": "200 表示成功",
+    "message": "返回信息",
+    "data": {
+      "list": "工单数组",
+      "page": "当前页",
+      "total": "总条数"
+    }
+  },
+  
+  "关键响应字段": {
+    "data.list[].workOrderId": "number - 工单ID（必填，用于查询任务和报工）",
+    "data.list[].workOrderCode": "string - 工单编号（显示用）",
+    "data.list[].materialInfo": "object - 完整物料信息对象，包含 baseInfo、attribute、conversions、unit 等",
+    "data.list[].materialInfo.baseInfo.id": "number - 物料ID（主产出物料ID）",
+    "data.list[].materialInfo.baseInfo.name": "string - 物料名称（显示：加工物料名称）",
+    "data.list[].materialInfo.baseInfo.code": "string - 物料编码（显示：物料编号）",
+    "data.list[].materialInfo.baseInfo.specification": "string - 规格",
+    "data.list[].materialInfo.conversions[]": "array - 单位转换关系数组",
+    "data.list[].materialInfo.conversions[].fromUnitId": "number - 基本单位ID",
+    "data.list[].materialInfo.conversions[].fromUnitName": "string - 基本单位名称",
+    "data.list[].materialInfo.conversions[].toUnitId": "number - 转换单位ID",
+    "data.list[].materialInfo.conversions[].toUnitName": "string - 转换单位名称",
+    "data.list[].materialInfo.unit": "object - 物料单位信息",
+    "data.list[].materialInfo.unit.id": "number - 单位ID",
+    "data.list[].materialInfo.unit.code": "string - 单位编码",
+    "data.list[].materialInfo.unit.name": "string - 单位名称",
+    "data.list[].qualifiedHoldAmount": "BaseAmountDisplay对象 - 合格报工数（显示用）",
+    "data.list[].qualifiedHoldAmount.amount": "number - 合格数量",
+    "data.list[].qualifiedHoldAmount.amountDisplay": "string - 合格数量显示",
+    "data.list[].disqualifiedHoldAmount": "BaseAmountDisplay对象 - 不良报工数（显示用）",
+    "data.list[].disqualifiedHoldAmount.amount": "number - 不良数量",
+    "data.list[].totalHoldAmount": "BaseAmountDisplay对象 - 总报工数（显示用）",
+    "data.list[].totalHoldAmount.amount": "number - 总数量",
+    "data.list[].expectedAmount": "BaseAmountDisplay对象 - 预计生产数",
+    "data.list[].plannedAmount": "BaseAmountDisplay对象 - 计划生产数",
+    "data.list[].createdAt": "number - 创建时间戳",
+    "data.list[].updatedAt": "number - 更新时间戳",
+    "data.list[].plannedStartTime": "number - 计划开始时间戳",
+    "data.list[].plannedEndTime": "number - 计划完工时间戳",
+    "data.list[].pauseFlag": "number - 暂停状态 1:是 0:否",
+    "data.list[].workOrderStatus": "object - 工单状态",
+    "data.list[].workOrderStatus.code": "number - 状态码",
+    "data.list[].workOrderStatus.message": "string - 状态描述",
+    "data.list[].workOrderType": "object - 工单类型",
+    "data.list[].processRoute": "object - 工艺路线信息",
+    "data.list[].processRoute.id": "number - 工艺路线ID",
+    "data.list[].processRoute.code": "string - 工艺路线编码",
+    "data.list[].processRoute.name": "string - 工艺路线名称"
+  },
+  
+  "BaseAmountDisplay 结构": {
+    "amount": "number - 数量",
+    "amountDisplay": "string - 显示文本（无科学计数法）",
+    "unitId": "number - 单位ID",
+    "unitCode": "string - 单位编码",
+    "unitName": "string - 单位名称"
+  },
+  
+  "使用示例": "参见 services/business.js:28-141 的 getWorkOrderList 方法和 processWorkOrderListResponse 方法"
+}
+

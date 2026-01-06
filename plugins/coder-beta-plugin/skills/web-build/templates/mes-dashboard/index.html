@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智能工厂生产实时监控中心</title>
+    <style>
+        /* --- 全局重置与基础样式 --- */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: "Microsoft YaHei", Arial, sans-serif;
+            background-color: #050a15;
+            background-image: 
+                radial-gradient(circle at 50% 50%, #0d1a35 0%, #050a15 100%),
+                linear-gradient(rgba(0, 240, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 240, 255, 0.03) 1px, transparent 1px);
+            background-size: 100% 100%, 30px 30px, 30px 30px;
+            color: #fff;
+            height: 100vh;
+            overflow: hidden; /* 防止滚动，全屏展示 */
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* --- 颜色变量 --- */
+        :root {
+            --primary-color: #00f0ff;
+            --secondary-color: #0088ff;
+            --warn-color: #ffcc00;
+            --danger-color: #ff4d4d;
+            --bg-panel: rgba(10, 25, 50, 0.6);
+            --border-panel: rgba(0, 240, 255, 0.2);
+        }
+
+        /* --- 顶部 Header --- */
+        header {
+            height: 8vh;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            background: linear-gradient(to bottom, rgba(0,20,40,0.9), transparent);
+            border-bottom: 2px solid var(--border-panel);
+            position: relative;
+        }
+
+        header::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--primary-color), transparent);
+            box-shadow: 0 0 10px var(--primary-color);
+        }
+
+        .header-title {
+            font-size: 1.8rem;
+            font-weight: bold;
+            letter-spacing: 2px;
+            text-shadow: 0 0 10px var(--secondary-color);
+            background: linear-gradient(to bottom, #fff, #aaddff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header-time {
+            font-family: 'Courier New', monospace;
+            font-size: 1.2rem;
+            color: var(--primary-color);
+        }
+
+        /* --- 主体布局 --- */
+        main {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 28% 44% 28%; /* 左 中 右 布局 */
+            gap: 15px;
+            padding: 15px;
+        }
+
+        /* --- 通用面板样式 --- */
+        .panel {
+            background: var(--bg-panel);
+            border: 1px solid var(--border-panel);
+            border-radius: 4px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            backdrop-filter: blur(5px);
+        }
+
+        /* 面板四角装饰 */
+        .panel::before, .panel::after, 
+        .panel-corner::before, .panel-corner::after {
+            content: "";
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            border-color: var(--primary-color);
+            border-style: solid;
+            transition: all 0.3s ease;
+        }
+        .panel::before { top: -1px; left: -1px; border-width: 2px 0 0 2px; }
+        .panel::after { top: -1px; right: -1px; border-width: 2px 2px 0 0; }
+        .panel-corner { position: absolute; bottom: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+        .panel-corner::before { bottom: -1px; left: -1px; border-width: 0 0 2px 2px; }
+        .panel-corner::after { bottom: -1px; right: -1px; border-width: 0 2px 2px 0; }
+
+        .panel:hover {
+            box-shadow: 0 0 15px rgba(0, 240, 255, 0.1);
+            border-color: rgba(0, 240, 255, 0.5);
+        }
+
+        .panel-title {
+            font-size: 1.1rem;
+            color: #fff;
+            border-left: 4px solid var(--primary-color);
+            padding-left: 10px;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        /* --- 左侧内容 --- */
+        .chart-box {
+            flex: 1;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        /* 自定义进度条列表 */
+        .progress-list {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .progress-item {
+            width: 100%;
+        }
+        .p-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            margin-bottom: 5px;
+            color: #ccc;
+        }
+        .p-bar-bg {
+            width: 100%;
+            height: 8px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .p-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--secondary-color), var(--primary-color));
+            width: 0%; /* 动画用 JS 控制 */
+            transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+        .p-bar-fill::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: 0;
+            height: 100%;
+            width: 2px;
+            background: #fff;
+            box-shadow: 0 0 5px #fff;
+        }
+
+        /* 环形图 (CSS实现) */
+        .donut-chart {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: conic-gradient(var(--primary-color) 0% calc(var(--val) * 1%), rgba(255,255,255,0.1) calc(var(--val) * 1%) 100%);
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 0 20px rgba(0, 240, 255, 0.2);
+        }
+        .donut-chart::before {
+            content: "";
+            width: 80%;
+            height: 80%;
+            background: #0d1a35;
+            border-radius: 50%;
+            position: absolute;
+        }
+        .donut-text {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+        }
+        .donut-value { font-size: 1.4rem; font-weight: bold; color: #fff; }
+        .donut-label { font-size: 0.8rem; color: #aaa; }
+
+        .device-stats {
+            display: flex;
+            justify-content: space-around;
+            width: 100%;
+            margin-top: 10px;
+        }
+        .stat-item { text-align: center; }
+        .stat-val { font-size: 1.2rem; font-weight: bold; }
+        .stat-val.online { color: #00ff00; }
+        .stat-val.offline { color: #888; }
+        .stat-val.warning { color: var(--warn-color); }
+        .stat-desc { font-size: 0.8rem; color: #aaa; margin-top: 2px; }
+
+
+        /* --- 中间内容 --- */
+        .center-column {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .kpi-board {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            height: 15vh;
+        }
+        
+        .kpi-card {
+            flex: 1;
+            background: rgba(0, 136, 255, 0.1);
+            border: 1px solid rgba(0, 136, 255, 0.3);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .kpi-card::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(0,240,255,0.1) 0%, transparent 70%);
+            animation: rotate 10s linear infinite;
+        }
+        @keyframes rotate { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        .kpi-num {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            z-index: 1;
+            font-family: 'Courier New', monospace;
+            text-shadow: 0 0 10px var(--primary-color);
+        }
+        .kpi-title {
+            font-size: 1rem;
+            color: #ccc;
+            z-index: 1;
+            margin-top: 5px;
+        }
+
+        .map-container {
+            flex: 1;
+            border: 1px solid var(--border-panel);
+            background: rgba(0,0,0,0.2);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        /* 模拟 3D 地图/雷达效果 */
+        .radar-grid {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            background: 
+                linear-gradient(rgba(0, 240, 255, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 240, 255, 0.1) 1px, transparent 1px);
+            background-size: 50px 50px;
+            perspective: 500px;
+            transform: perspective(1000px) rotateX(60deg) scale(1.5);
+            animation: gridMove 20s linear infinite;
+        }
+        @keyframes gridMove { from { background-position: 0 0; } to { background-position: 0 50px; } }
+
+        .factory-model {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            z-index: 10;
+        }
+        /* 简单的 CSS 旋转动画模拟中心产线 */
+        .circle-ring {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            border: 2px solid var(--primary-color);
+            box-shadow: 0 0 15px var(--primary-color);
+        }
+        .r1 { width: 100px; height: 100px; border-style: dashed; animation: spin 10s linear infinite; }
+        .r2 { width: 180px; height: 180px; border-color: rgba(0,240,255,0.3); border-width: 1px; animation: spinReverse 15s linear infinite; }
+        .r3 { width: 60px; height: 60px; background: rgba(0,240,255,0.1); display: flex; align-items: center; justify-content: center;}
+        
+        .factory-icon { font-size: 2rem; }
+
+        @keyframes spin { 100% { transform: translate(-50%, -50%) rotate(360deg); } }
+        @keyframes spinReverse { 100% { transform: translate(-50%, -50%) rotate(-360deg); } }
+
+        /* --- 右侧内容 --- */
+        .alert-list {
+            width: 100%;
+            overflow: hidden;
+            flex: 1;
+        }
+        .alert-item {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            font-size: 0.9rem;
+            animation: fadeIn 0.5s ease;
+        }
+        .alert-time { color: #888; margin-right: 10px; font-size: 0.8rem;}
+        .alert-content { flex: 1; }
+        .alert-level {
+            padding: 2px 6px;
+            border-radius: 2px;
+            font-size: 0.75rem;
+            margin-right: 8px;
+        }
+        .level-high { background: rgba(255, 77, 77, 0.2); color: var(--danger-color); border: 1px solid var(--danger-color); }
+        .level-warn { background: rgba(255, 204, 0, 0.2); color: var(--warn-color); border: 1px solid var(--warn-color); }
+
+        /* SVG 折线图容器 */
+        .svg-chart-container {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+        svg {
+            width: 100%;
+            height: 100%;
+            overflow: visible;
+        }
+        .chart-line {
+            fill: none;
+            stroke: var(--primary-color);
+            stroke-width: 2;
+            vector-effect: non-scaling-stroke;
+        }
+        .chart-area {
+            fill: rgba(0, 240, 255, 0.1);
+            stroke: none;
+        }
+        .chart-grid line {
+            stroke: rgba(255,255,255,0.1);
+            stroke-width: 1;
+        }
+        .chart-axis text {
+            fill: #888;
+            font-size: 10px;
+        }
+
+        /* 响应式调整 */
+        @media (max-width: 1200px) {
+            main { grid-template-columns: 30% 70%; grid-template-rows: auto auto; }
+            .center-column { grid-row: 1 / 2; grid-column: 2 / 3; }
+            .right-column { grid-row: 2 / 3; grid-column: 1 / 3; display: flex; gap: 15px; height: 30vh;}
+            .left-column { grid-row: 1 / 2; grid-column: 1 / 2; }
+        }
+        @media (max-width: 768px) {
+            main { display: flex; flex-direction: column; overflow-y: auto; }
+            body { overflow: auto; height: auto; }
+            .kpi-board { flex-wrap: wrap; height: auto; }
+            .kpi-card { width: 48%; margin-bottom: 10px; height: 100px; }
+            .map-container { height: 300px; }
+        }
+
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="header-logo">🏭 SMART FACTORY</div>
+        <div class="header-title">智能制造MES生产看板</div>
+        <div class="header-time" id="clock">00:00:00</div>
+    </header>
+
+    <main>
+        <!-- 左列：设备与效率 -->
+        <section class="panel left-column">
+            <div class="panel-corner"></div>
+            <div class="panel-title">设备综合效率 (OEE)</div>
+            <div class="chart-box" style="flex-direction: column; justify-content: space-around;">
+                <div class="device-stats">
+                    <div class="stat-item">
+                        <div class="donut-chart" style="--val:85">
+                            <div class="donut-text">
+                                <div class="donut-value">85%</div>
+                                <div class="donut-label">OEE</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="device-stats" style="margin-top: 20px;">
+                    <div class="stat-item">
+                        <div class="stat-val online">42</div>
+                        <div class="stat-desc">运行中</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-val warning">3</div>
+                        <div class="stat-desc">待机</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-val offline">1</div>
+                        <div class="stat-desc">故障</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="panel left-column">
+            <div class="panel-corner"></div>
+            <div class="panel-title">车间产出进度</div>
+            <div class="chart-box">
+                <div class="progress-list">
+                    <div class="progress-item">
+                        <div class="p-label"><span>A线 - 电子组装</span><span>92%</span></div>
+                        <div class="p-bar-bg"><div class="p-bar-fill" style="width: 92%;"></div></div>
+                    </div>
+                    <div class="progress-item">
+                        <div class="p-label"><span>B线 - 注塑成型</span><span>78%</span></div>
+                        <div class="p-bar-bg"><div class="p-bar-fill" style="width: 78%; background: linear-gradient(90deg, #ffcc00, #ff9900);"></div></div>
+                    </div>
+                    <div class="progress-item">
+                        <div class="p-label"><span>C线 - 包装质检</span><span>45%</span></div>
+                        <div class="p-bar-bg"><div class="p-bar-fill" style="width: 45%;"></div></div>
+                    </div>
+                    <div class="progress-item">
+                        <div class="p-label"><span>D线 - 激光焊接</span><span>88%</span></div>
+                        <div class="p-bar-bg"><div class="p-bar-fill" style="width: 88%;"></div></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 中列：核心监控 -->
+        <section class="center-column">
+            <div class="kpi-board">
+                <div class="kpi-card">
+                    <div class="kpi-num" id="kpi-total">24,592</div>
+                    <div class="kpi-title">今日总产量 (PCS)</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-num" style="color: #00ff00;">99.2%</div>
+                    <div class="kpi-title">良品率</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-num" style="color: #ffcc00;" id="kpi-cycle">4.2s</div>
+                    <div class="kpi-title">平均节拍</div>
+                </div>
+            </div>
+
+            <div class="panel map-container" style="flex:1;">
+                <div class="panel-corner"></div>
+                <div class="radar-grid"></div>
+                <div class="factory-model">
+                    <div class="circle-ring r1"></div>
+                    <div class="circle-ring r2"></div>
+                    <div class="circle-ring r3">
+                        <span class="factory-icon">⚙️</span>
+                    </div>
+                </div>
+                <div style="position:absolute; bottom:20px; left:20px; font-size:0.9rem; color:#aaa;">
+                    <div>主轴转速: <span style="color:#fff;" id="motor-speed">1200</span> RPM</div>
+                    <div>核心温度: <span style="color:#fff;" id="motor-temp">45.2</span> °C</div>
+                </div>
+                <div style="position:absolute; top:20px; right:20px; text-align:right;">
+                    <div style="color:var(--primary-color); border:1px solid var(--primary-color); padding: 5px 10px; font-size:0.8rem;">
+                        SYSTEM: ONLINE
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 右列：趋势与告警 -->
+        <section class="panel right-column">
+            <div class="panel-corner"></div>
+            <div class="panel-title">实时产量趋势 (24H)</div>
+            <div class="chart-box" id="line-chart-box">
+                <!-- SVG Chart will be injected here by JS -->
+            </div>
+        </section>
+
+        <section class="panel right-column">
+            <div class="panel-corner"></div>
+            <div class="panel-title">实时告警信息</div>
+            <div class="chart-box" style="align-items: flex-start;">
+                <div class="alert-list" id="alert-container">
+                    <!-- Alerts injected by JS -->
+                    <div class="alert-item">
+                        <span class="alert-time">10:42</span>
+                        <span class="alert-level level-warn">警告</span>
+                        <span class="alert-content">B线 3号机台 温度偏高</span>
+                    </div>
+                    <div class="alert-item">
+                        <span class="alert-time">09:15</span>
+                        <span class="alert-level level-high">故障</span>
+                        <span class="alert-content">C线 缺料停机报警</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // --- 1. 时钟功能 ---
+        function updateClock() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('zh-CN', { hour12: false });
+            const dateString = now.toLocaleDateString('zh-CN');
+            document.getElementById('clock').innerHTML = `${dateString} ${timeString}`;
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // --- 2. 模拟数据动态跳动 ---
+        function fluctuateData() {
+            // 更新产量
+            const totalEl = document.getElementById('kpi-total');
+            let currentTotal = parseInt(totalEl.innerText.replace(/,/g, ''));
+            currentTotal += Math.floor(Math.random() * 5); // 随机增加
+            totalEl.innerText = currentTotal.toLocaleString();
+
+            // 更新节拍
+            const cycleEl = document.getElementById('kpi-cycle');
+            cycleEl.innerText = (4.0 + Math.random() * 0.5).toFixed(1) + 's';
+
+            // 更新机器参数
+            document.getElementById('motor-speed').innerText = 1200 + Math.floor(Math.random() * 50 - 25);
+            document.getElementById('motor-temp').innerText = (45 + Math.random() * 2).toFixed(1);
+        }
+        setInterval(fluctuateData, 2000);
+
+        // --- 3. 绘制 SVG 折线图 (无需 Canvas 库) ---
+        function drawLineChart() {
+            const container = document.getElementById('line-chart-box');
+            const width = container.clientWidth;
+            const height = container.clientHeight;
+            
+            // 生成模拟数据 (24小时)
+            const dataPoints = [];
+            for (let i = 0; i < 24; i++) {
+                dataPoints.push(50 + Math.random() * 40); // 50-90之间的数值
+            }
+
+            const maxVal = 100;
+            const stepX = width / (dataPoints.length - 1);
+            
+            // 构建路径点
+            let pointsStr = "";
+            let areaPointsStr = `0,${height} `; // 闭合区域起点
+            
+            dataPoints.forEach((val, index) => {
+                const x = index * stepX;
+                const y = height - (val / maxVal * height); // 坐标翻转
+                pointsStr += `${x},${y} `;
+                areaPointsStr += `${x},${y} `;
+            });
+
+            areaPointsStr += `${width},${height}`; // 闭合区域终点
+
+            const svgContent = `
+                <svg viewBox="0 0 ${width} ${height}" preserveAspectRatio="none">
+                    <!-- 网格线 -->
+                    <g class="chart-grid">
+                        <line x1="0" y1="${height * 0.25}" x2="${width}" y2="${height * 0.25}" />
+                        <line x1="0" y1="${height * 0.5}" x2="${width}" y2="${height * 0.5}" />
+                        <line x1="0" y1="${height * 0.75}" x2="${width}" y2="${height * 0.75}" />
+                    </g>
+                    <!-- 面积 -->
+                    <polygon points="${areaPointsStr}" class="chart-area" />
+                    <!-- 折线 -->
+                    <polyline points="${pointsStr}" class="chart-line" />
+                </svg>
+            `;
+            container.innerHTML = svgContent;
+        }
+
+        // 窗口大小改变时重绘图表
+        window.addEventListener('resize', drawLineChart);
+        setTimeout(drawLineChart, 100); // 初始化绘制
+
+        // --- 4. 模拟告警滚动 ---
+        const alerts = [
+            { level: 'warn', text: 'A线 气压波动异常' },
+            { level: 'high', text: 'AGV 小车受阻 #04' },
+            { level: 'warn', text: '物料库存预警: 螺丝M4' },
+            { level: 'normal', text: '班次产量已达标' }
+        ];
+
+        function addRandomAlert() {
+            const container = document.getElementById('alert-container');
+            const randomAlert = alerts[Math.floor(Math.random() * alerts.length)];
+            const now = new Date();
+            const timeStr = `${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
+            
+            const div = document.createElement('div');
+            div.className = 'alert-item';
+            
+            let levelClass = '';
+            let levelText = '信息';
+            if (randomAlert.level === 'warn') { levelClass = 'level-warn'; levelText = '警告'; }
+            if (randomAlert.level === 'high') { levelClass = 'level-high'; levelText = '故障'; }
+            
+            div.innerHTML = `
+                <span class="alert-time">${timeStr}</span>
+                <span class="alert-level ${levelClass}">${levelText}</span>
+                <span class="alert-content">${randomAlert.text}</span>
+            `;
+            
+            container.insertBefore(div, container.firstChild);
+            
+            // 保持列表长度
+            if (container.children.length > 6) {
+                container.removeChild(container.lastChild);
+            }
+        }
+        setInterval(addRandomAlert, 5000);
+
+    </script>
+</body>
+</html>
