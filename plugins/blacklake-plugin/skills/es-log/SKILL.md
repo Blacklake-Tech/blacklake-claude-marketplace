@@ -1,6 +1,6 @@
 ---
 name: es-log
-description: ES 日志查询和写入能力，支持接口日志、外部接口日志、事件日志、中间表接口日志的查询和写入。支持从线上查询数据后写入 feature/test 环境进行造数据。使用 curl 命令执行查询和写入操作。
+description: ES 日志查询、写入和删除能力，支持接口日志、外部接口日志、事件日志、中间表接口日志的查询、写入和删除。支持从线上查询数据后写入 feature/test 环境进行造数据。仅允许删除 feature/test 环境的数据，删除前必须获得用户明确确认。使用 curl 命令执行查询、写入和删除操作。
 ---
 
 # ES 日志查询和写入
@@ -9,28 +9,30 @@ description: ES 日志查询和写入能力，支持接口日志、外部接口�
 
 ### Kibana 地址映射
 
-| 环境 | Kibana 地址 | 索引后缀 | 权限 |
+| 环境 | Kibana 地址 | 环境标识 | 权限 |
 |------|------------|---------|------|
-| 阿里生产 | `kibana.ali-prod.blacklake.tech` | `-v3master` | 仅查询 |
-| 华为生产 | `kibana.hwyx-prod.blacklake.tech` | `-hwv3master` | 仅查询 |
-| 国泰生产 | `kibana-ops.guotai.blacklake.tech` | `-v3master` | 仅查询 |
-| Feature | `kibana.ali-test.blacklake.tech` | `-v3feature` | 查询+写入 |
-| Test | `kibana.ali-test.blacklake.tech` | `-v3test` | 查询+写入 |
+| 阿里生产 | `kibana.ali-prod.blacklake.tech` | `v3master` | 仅查询 |
+| 华为生产 | `kibana.hwyx-prod.blacklake.tech` | `hwv3master` | 仅查询 |
+| 国泰生产 | `kibana-ops.guotai.blacklake.tech` | `v3master` | 仅查询 |
+| Feature | `kibana.ali-test.blacklake.tech` | `v3feature` | 查询+写入+删除 |
+| Test | `kibana.ali-test.blacklake.tech` | `v3test` | 查询+写入+删除 |
 
-> **⚠️ 严令禁止**：生产环境（阿里生产、华为生产、国泰生产）**绝对禁止**任何写入操作，仅支持查询！
+> **⚠️ 严令禁止**：生产环境（阿里生产、华为生产、国泰生产）**绝对禁止**任何写入和删除操作，仅支持查询！
 
 ### 索引命名规则
 
-| 类型 | 索引模式 | 说明 |
-|------|---------|------|
-| 接口日志 | `http-access-log-{env}-openapi-domain-*` | 包含 `openapi-domain` |
-| 外部接口日志 | `external-access-log-{env}-integration-*` | 包含 `integration` |
-| 事件日志 | `event-retry-log-{env}-openapi-domain-*` | 包含 `openapi-domain` |
-| 中间表接口日志 | `mybatis-sql-log-{env}-integration-*` | 包含 `integration` |
+| 类型 | 索引模式 | env 出现次数 | 说明 |
+|------|---------|-------------|------|
+| 接口日志 | `http-access-log-{env}-openapi-domain-{env}-*` | 2次 | 包含 `openapi-domain`，env 出现两次 |
+| 事件日志 | `event-retry-log-{env}-openapi-domain-{env}-*` | 2次 | 包含 `openapi-domain`，env 出现两次 |
+| 外部接口日志 | `external-access-log-{env}-*` | 1次 | env 只出现一次 |
+| 中间表接口日志 | `mybatis-sql-log-{env}-integration-*` | 1次 | 包含 `integration`，env 只出现一次 |
 
 **规则**：
-- `{env}` 为环境后缀：`v3master`、`hwv3master`、`v3feature`、`v3test`
+- `{env}` 为环境标识占位符，代表环境标识值：`v3master`、`hwv3master`、`v3feature`、`v3test`
+- 环境标识在索引名中直接使用（不带减号前缀），减号只是索引名中的连接符
 - 日期格式：`YYYY-MM-DD`，查询时使用 `*` 匹配
+- **重要**：包含 `openapi-domain` 的索引（接口日志、事件日志）中 env 出现两次，转换时需要替换两处
 
 ## 【字段映射】
 
@@ -153,7 +155,7 @@ curl --location 'http://kibana.ali-test.blacklake.tech/api/console/proxy?path={i
 ```
 
 **参数说明**：
-- `{index}`：完整索引名（包含日期），如 `http-access-log-v3feature-openapi-domain-2025-12-30`
+- `{index}`：完整索引名（包含日期），如 `http-access-log-v3feature-openapi-domain-v3feature-2025-12-30`
 - `{id}`：文档的 `_id`，从查询结果中获取
 - `{data}`：JSON 格式的完整文档数据（从查询结果的 _source 字段复制，根据步骤2的决策修改 orgId 和执行时间字段）
 
@@ -196,7 +198,7 @@ curl --location 'http://kibana.ali-test.blacklake.tech/api/console/proxy?path={i
 ```
 
 **参数说明**：
-- `{index_pattern}`：使用通配符模式，如 `http-access-log-v3feature-openapi-domain-*`
+- `{index_pattern}`：使用通配符模式，如 `http-access-log-v3feature-openapi-domain-v3feature-*`
 - `{document_id}`：要检查的文档 ID
 
 **返回结果解释**：
@@ -204,6 +206,80 @@ curl --location 'http://kibana.ali-test.blacklake.tech/api/console/proxy?path={i
 - `hits.total.value` > 0：文档已存在
   - `hits.hits[0]._source`：现有文档的完整数据
   - `hits.hits[0]._index`：现有文档所在的索引
+
+## 【删除操作】
+
+**⚠️ 严令禁止**：**绝对禁止**对生产环境进行任何删除操作！
+
+- ✅ **允许删除**：仅限 Feature 和 Test 环境
+- ❌ **禁止删除**：所有生产环境（包含 `v3master`、`hwv3master` 的索引）
+
+### 删除模板
+
+```bash
+curl --location 'http://kibana.ali-test.blacklake.tech/api/console/proxy?path={index}/_doc/{id}&method=DELETE' \
+--header 'kbn-xsrf: true'
+```
+
+**参数说明**：
+- `{index}`：完整索引名（包含日期），如 `http-access-log-v3feature-openapi-domain-v3feature-2025-12-30`
+- `{id}`：文档的 `_id`，从查询结果中获取
+
+**注意**：Kibana 地址固定为 `kibana.ali-test.blacklake.tech`，仅限 Feature 和 Test 环境使用。
+
+### 删除工作流程
+
+**⚠️ 强制执行规则**：必须按顺序完成所有步骤，不得跳过。
+
+#### 步骤 1：查询目标数据
+
+使用查询模板获取要删除的数据，展示：
+- `_id`：文档 ID
+- `_source`：文档内容（关键字段）
+- `_index`：索引名
+
+#### 步骤 2：确认索引环境
+
+**⚠️ 强制检查**：删除前必须验证索引名不包含生产环境标识。
+
+- ✅ **允许删除**：索引名包含 `v3feature` 或 `v3test`
+- ❌ **禁止删除**：索引名包含 `v3master` 或 `hwv3master`
+
+如果检测到生产环境索引，**立即停止**并提示用户。
+
+#### 步骤 3：等待用户明确确认
+
+**⚠️ 强制步骤**：必须等待用户明确回复确认后才能执行删除。
+
+**确认方式**：
+- 展示要删除的数据信息（索引名、文档ID、关键字段）
+- 明确提示删除操作不可恢复
+- 等待用户明确回复确认（如"确认删除"、"是的，删除"、"删除"等）
+- 如果用户未明确确认或取消，**停止执行**
+
+**示例对话**：
+```
+要删除的数据：
+- 索引：http-access-log-v3feature-openapi-domain-v3feature-2025-12-30
+- 文档ID：test-doc-id-12345
+- orgId: 123456
+- uuid: test-uuid-12345
+
+⚠️ 警告：删除操作不可恢复！
+
+请确认是否删除？回复"确认删除"以继续。
+```
+
+#### 步骤 4：执行删除操作
+
+**前置条件检查**：
+- [ ] 已确认目标索引不包含生产环境标识（`v3master`、`hwv3master`）
+- [ ] 已查询到目标数据
+- [ ] 已获得用户明确确认删除
+
+**执行删除**：
+- 使用删除模板执行删除操作
+- 检查返回结果，确认删除成功
 
 ## 【造数据工作流程】
 
@@ -244,7 +320,7 @@ curl --location 'http://kibana.ali-test.blacklake.tech/api/console/proxy?path={i
 查询到的数据：
 - 原 orgId: 123456
 - 原执行时间: 1735552200000 (2025-12-30 10:30:00)
-- 原索引: http-access-log-v3master-openapi-domain-2025-12-30
+- 原索引: http-access-log-v3master-openapi-domain-v3master-2025-12-30
 
 请确认：
 1. 目标 orgId？
@@ -274,7 +350,7 @@ curl --location 'http://kibana.ali-test.blacklake.tech/api/console/proxy?path={�
 
 **索引模式构建**：
 - 参考【索引命名规则】表格
-- 将 `{env}` 替换为目标环境（`v3feature`、`v3test`）
+- 将 `{env}` 替换为目标环境标识（`v3feature`、`v3test`）
 - 使用通配符 `*` 匹配所有日期
 
 **检查结果处理**：
@@ -293,8 +369,19 @@ curl --location 'http://kibana.ali-test.blacklake.tech/api/console/proxy?path={�
 - [ ] 如果存在冲突，已获得用户明确确认覆盖
 
 **索引转换和数据修改**：参考【数据转换规则】章节
-- 索引名转换：根据步骤2的时间处理方式决定索引日期，进行环境转换
-- 字段修改：修改 orgId 相关字段为目标 orgId，根据步骤2的决策修改执行时间字段
+
+**索引名转换规则**：
+- 根据步骤2的时间处理方式决定索引日期
+- 环境转换：
+  - **包含 `openapi-domain` 的索引**（接口日志、事件日志）：需要替换两处 env
+    - 例如：`http-access-log-v3master-openapi-domain-v3master-2025-12-30` → `http-access-log-v3feature-openapi-domain-v3feature-2025-12-30`
+  - **包含 `integration` 的索引**（中间表接口日志）或**外部接口日志**：只需要替换一处 env
+    - 例如：`mybatis-sql-log-v3master-integration-2026-01-02` → `mybatis-sql-log-v3feature-integration-2026-01-02`
+    - 例如：`external-access-log-v3master-2025-12-02` → `external-access-log-v3feature-2025-12-02`
+
+**字段修改**：
+- 修改 orgId 相关字段为目标 orgId
+- 根据步骤2的决策修改执行时间字段
 
 **写入命令**：
 ```bash
@@ -341,11 +428,28 @@ curl --location 'http://kibana.ali-test.blacklake.tech/api/console/proxy?path={i
 
 **注意**：修改执行时间时，索引名也需要相应更新（索引日期从新的时间戳提取）。
 
+**索引名更新规则**：
+- 根据索引类型决定 env 替换次数：
+  - **包含 `openapi-domain` 的索引**（接口日志、事件日志）：索引名中 env 出现两次，日期部分需要更新
+    - 例如：`http-access-log-v3feature-openapi-domain-v3feature-2025-12-30` → `http-access-log-v3feature-openapi-domain-v3feature-2026-01-05`
+  - **包含 `integration` 的索引**（中间表接口日志）或**外部接口日志**：索引名中 env 只出现一次，日期部分需要更新
+    - 例如：`mybatis-sql-log-v3feature-integration-2026-01-02` → `mybatis-sql-log-v3feature-integration-2026-01-05`
+
 ## 【数据转换规则】
 
 ### 索引名转换
 
-**环境转换**：
+**环境转换规则**：
+
+对于包含 `openapi-domain` 的索引（接口日志、事件日志）：
+- env 出现两次，需要替换两处
+- 阿里生产 → Feature：两处 `v3master` → `v3feature`
+- 阿里生产 → Test：两处 `v3master` → `v3test`
+- 华为生产 → Feature：两处 `hwv3master` → `v3feature`
+- 华为生产 → Test：两处 `hwv3master` → `v3test`
+
+对于包含 `integration` 的索引（中间表接口日志）或外部接口日志：
+- env 只出现一次，只需要替换一处
 - 阿里生产 → Feature：`v3master` → `v3feature`
 - 阿里生产 → Test：`v3master` → `v3test`
 - 华为生产 → Feature：`hwv3master` → `v3feature`
@@ -356,9 +460,23 @@ curl --location 'http://kibana.ali-test.blacklake.tech/api/console/proxy?path={i
 - 示例：`1735552200000` → `2025-12-30`
 
 **完整示例**：
-- 原索引：`http-access-log-v3master-openapi-domain-2025-12-30`
-- 转换后（Feature，保持日期）：`http-access-log-v3feature-openapi-domain-2025-12-30`
-- 转换后（Feature，改为 2026-01-05）：`http-access-log-v3feature-openapi-domain-2026-01-05`
+
+接口日志（env 出现两次）：
+- 原索引：`http-access-log-v3master-openapi-domain-v3master-2025-12-30`
+- 转换后（Feature，保持日期）：`http-access-log-v3feature-openapi-domain-v3feature-2025-12-30`
+- 转换后（Feature，改为 2026-01-05）：`http-access-log-v3feature-openapi-domain-v3feature-2026-01-05`
+
+事件日志（env 出现两次）：
+- 原索引：`event-retry-log-v3master-openapi-domain-v3master-2025-12-09`
+- 转换后（Feature，保持日期）：`event-retry-log-v3feature-openapi-domain-v3feature-2025-12-09`
+
+中间表接口日志（env 只出现一次）：
+- 原索引：`mybatis-sql-log-v3master-integration-2026-01-02`
+- 转换后（Feature，保持日期）：`mybatis-sql-log-v3feature-integration-2026-01-02`
+
+外部接口日志（env 只出现一次）：
+- 原索引：`external-access-log-v3master-2025-12-02`
+- 转换后（Feature，保持日期）：`external-access-log-v3feature-2025-12-02`
 
 ### 字段修改规则
 
@@ -396,11 +514,11 @@ curl --location 'http://kibana.ali-test.blacklake.tech/api/console/proxy?path={i
   - 执行时间字段：改为新的 13 位时间戳
 
 **示例**：
-- 原索引：`http-access-log-v3master-openapi-domain-2025-12-30`
+- 原索引：`http-access-log-v3master-openapi-domain-v3master-2025-12-30`
 - 原时间：`1735552200000` (2025-12-30 10:30:00)
 
 修改为当前时间（2026-01-05 14:20:00）：
-- 新索引：`http-access-log-v3feature-openapi-domain-2026-01-05`
+- 新索引：`http-access-log-v3feature-openapi-domain-v3feature-2026-01-05`
 - 新时间：`1736061600000` (2026-01-05 14:20:00)
 - 修改字段：`send_at` 或 `@timestamp`
 
@@ -413,8 +531,8 @@ curl --location 'http://kibana.ali-test.blacklake.tech/api/console/proxy?path={i
 | 阿里生产 | `kibana.ali-prod.blacklake.tech` | GET |
 | 华为生产 | `kibana.hwyx-prod.blacklake.tech` | GET |
 | 国泰生产 | `kibana-ops.guotai.blacklake.tech` | GET |
-| Feature | `kibana.ali-test.blacklake.tech` | GET, PUT, POST |
-| Test | `kibana.ali-test.blacklake.tech` | GET, PUT, POST |
+| Feature | `kibana.ali-test.blacklake.tech` | GET, PUT, POST, DELETE |
+| Test | `kibana.ali-test.blacklake.tech` | GET, PUT, POST, DELETE |
 
 ### 索引名识别
 
@@ -442,6 +560,12 @@ curl --location 'http://kibana.ali-test.blacklake.tech/api/console/proxy?path={i
 - 必须使用完整索引名
 - 必须提供文档 ID
 
+**删除操作（DELETE）**：
+- 仅测试环境支持（Feature, Test）
+- 必须使用完整索引名
+- 必须提供文档 ID
+- 删除前必须获得用户明确确认
+
 ## 【注意事项】
 
 1. **工作流程**：
@@ -452,3 +576,9 @@ curl --location 'http://kibana.ali-test.blacklake.tech/api/console/proxy?path={i
    - 写入时确保包含所有必要字段
    - 只修改 orgId 和执行时间字段（根据步骤2决策），其他字段保持不变
    - 保留原始 `_id` 以便追溯数据来源
+
+3. **删除操作**：
+   - 删除操作不可恢复，必须谨慎执行
+   - 删除前必须确认索引不包含生产环境标识（`v3master`、`hwv3master`）
+   - 必须等待用户明确确认（如"确认删除"）后才能执行删除
+   - 删除前展示要删除的数据信息，让用户了解删除内容
