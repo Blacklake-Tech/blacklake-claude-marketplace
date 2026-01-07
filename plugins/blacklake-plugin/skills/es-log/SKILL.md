@@ -92,6 +92,8 @@ description: ES 日志查询和写入能力，支持接口日志、外部接口�
 
 ## 【查询操作】
 
+**URL格式**：`http://{kibana_host}/api/console/proxy?path={path}&method={method}`
+
 ### 基础查询模板
 
 ```bash
@@ -105,6 +107,11 @@ curl --location 'http://{kibana_host}/api/console/proxy?path={index_pattern}/_se
 }'
 ```
 
+**参数说明**：
+- `{kibana_host}`：Kibana 地址，参考【环境配置】
+- `{index_pattern}`：索引模式，参考【索引命名规则】
+- `size`：返回记录数
+
 ### 根据 uuid 查询
 
 ```bash
@@ -114,7 +121,7 @@ curl --location 'http://{kibana_host}/api/console/proxy?path={index_pattern}/_se
 --data '{
   "size": 10,
   "query": {
-    "term": { "uuid.keyword": "test-uuid-12345" }
+    "term": { "uuid.keyword": "{uuid}" }
   }
 }'
 ```
@@ -122,6 +129,7 @@ curl --location 'http://{kibana_host}/api/console/proxy?path={index_pattern}/_se
 **参数说明**：
 - `{kibana_host}`：Kibana 地址，参考【环境配置】
 - `{index_pattern}`：索引模式，参考【索引命名规则】
+- `{uuid}`：文档的 uuid
 - `size`：返回记录数
 
 **查询类型**：
@@ -141,13 +149,61 @@ curl --location 'http://{kibana_host}/api/console/proxy?path={index_pattern}/_se
 curl --location 'http://kibana.ali-test.blacklake.tech/api/console/proxy?path={index}/_doc/{id}&method=PUT' \
 --header 'kbn-xsrf: true' \
 --header 'Content-Type: application/json' \
---data '{...从查询结果 _source 复制的数据...}'
+--data '{data}'
 ```
 
 **参数说明**：
-- `{kibana_host}`：**仅限** `kibana.ali-test.blacklake.tech`
 - `{index}`：完整索引名（包含日期），如 `http-access-log-v3feature-openapi-domain-2025-12-30`
 - `{id}`：文档的 `_id`，从查询结果中获取
+- `{data}`：JSON 格式的完整文档数据（从查询结果的 _source 字段复制，根据步骤2的决策修改 orgId 和执行时间字段）
+
+**注意**：Kibana 地址固定为 `kibana.ali-test.blacklake.tech`，仅限 Feature 和 Test 环境使用。
+
+### 更新执行时间模板
+
+```bash
+curl --location 'http://kibana.ali-test.blacklake.tech/api/console/proxy?path={index}/_update/{id}&method=POST' \
+--header 'kbn-xsrf: true' \
+--header 'Content-Type: application/json' \
+--data '{
+  "doc": {
+    "{time_field}": {timestamp}
+  }
+}'
+```
+
+**参数说明**：
+- `{time_field}`：执行时间字段名
+  - 接口/事件/外部接口日志：`send_at`
+  - 中间表日志：`@timestamp`
+- `{timestamp}`：13 位毫秒级时间戳
+
+**重要**：必须使用 `POST _update` API 进行部分更新，**不要使用 PUT**。使用 PUT 容易误改其他字段。
+
+### ID 冲突检查模板
+
+```bash
+curl --location 'http://kibana.ali-test.blacklake.tech/api/console/proxy?path={index_pattern}/_search&method=GET' \
+--header 'kbn-xsrf: true' \
+--header 'Content-Type: application/json' \
+--data '{
+  "query": {
+    "ids": {
+      "values": ["{document_id}"]
+    }
+  }
+}'
+```
+
+**参数说明**：
+- `{index_pattern}`：使用通配符模式，如 `http-access-log-v3feature-openapi-domain-*`
+- `{document_id}`：要检查的文档 ID
+
+**返回结果解释**：
+- `hits.total.value` 为 0：文档不存在
+- `hits.total.value` > 0：文档已存在
+  - `hits.hits[0]._source`：现有文档的完整数据
+  - `hits.hits[0]._index`：现有文档所在的索引
 
 ## 【造数据工作流程】
 
@@ -202,7 +258,7 @@ curl --location 'http://kibana.ali-test.blacklake.tech/api/console/proxy?path={i
 
 **⚠️ 强制步骤**：写入前必须检查目标索引模式中是否已存在相同文档ID的数据。
 
-**检查命令**（使用通配符索引模式）：
+**检查命令**：
 ```bash
 curl --location 'http://kibana.ali-test.blacklake.tech/api/console/proxy?path={索引模式}/_search&method=GET' \
 --header 'kbn-xsrf: true' \
@@ -236,66 +292,163 @@ curl --location 'http://kibana.ali-test.blacklake.tech/api/console/proxy?path={�
 - [ ] 已完成步骤 3 的 ID 冲突检查
 - [ ] 如果存在冲突，已获得用户明确确认覆盖
 
-**索引转换规则**：
-- 根据步骤 2 的时间处理方式决定索引日期：
-  - **保持原时间**：索引日期保持原值，只修改 env 部分
-  - **修改时间**：索引日期改为对应日期（从时间戳提取），修改 env 部分
-- 环境转换：
-  - 阿里生产 → Feature：`v3master` → `v3feature`
-  - 阿里生产 → Test：`v3master` → `v3test`
-  - 华为生产 → Feature：`hwv3master` → `v3feature`
-  - 华为生产 → Test：`hwv3master` → `v3test`
-
-**数据修改规则**：
-- ✅ **必须修改**：orgId 相关字段（`orgId`、`x-org-id`、`X-Org-Id` 等）为目标 orgId
-- ✅ **根据步骤2的决策修改**：
-  - **如果修改时间**：执行时间字段改为对应的13位时间戳
-    - 接口/事件/外部接口日志：`send_at`
-    - 中间表接口日志：`@timestamp`
-  - **如果不修改时间**：执行时间字段保持原值
-- ❌ **不修改**：env 相关字段、其他业务数据
+**索引转换和数据修改**：参考【数据转换规则】章节
+- 索引名转换：根据步骤2的时间处理方式决定索引日期，进行环境转换
+- 字段修改：修改 orgId 相关字段为目标 orgId，根据步骤2的决策修改执行时间字段
 
 **写入命令**：
 ```bash
-curl --location 'http://kibana.ali-test.blacklake.tech/api/console/proxy?path={目标索引}/_doc/{原始_id}&method=PUT' \
+curl --location 'http://kibana.ali-test.blacklake.tech/api/console/proxy?path={index}/_doc/{id}&method=PUT' \
 --header 'kbn-xsrf: true' \
 --header 'Content-Type: application/json' \
---data '{...从步骤1查询结果的 _source 字段复制，根据步骤2的决策修改 orgId 和执行时间字段...}'
+--data '{data}'
 ```
+
+**数据准备**：
+- 从步骤1查询结果的 `_source` 字段复制完整数据
+- 根据步骤2的决策修改 orgId 和执行时间字段
+- 确保 JSON 格式正确
 
 ## 【修改已写入数据的执行时间】
 
 用户可能在数据写入后，需要修改执行时间以触发 1 分钟内的轮询通知。
 
-使用 `POST _update` API 进行部分更新：
+**重要**：必须使用 `POST _update` API 进行部分更新，**不要使用 PUT**。
+
+**为什么使用 UPDATE 而不是 PUT**：
+- ✅ **UPDATE**：只更新指定字段，其他字段保持不变，安全可靠
+- ❌ **PUT**：需要提供完整文档数据，容易误改其他字段，导致数据不完整或错误
+
+**更新命令**：
+```bash
+curl --location 'http://kibana.ali-test.blacklake.tech/api/console/proxy?path={index}/_update/{id}&method=POST' \
+--header 'kbn-xsrf: true' \
+--header 'Content-Type: application/json' \
+--data '{
+  "doc": {
+    "{time_field}": {timestamp}
+  }
+}'
+```
+
+**时间字段**：
 - 接口/事件/外部接口日志：修改 `send_at` 字段
 - 中间表接口日志：修改 `@timestamp` 字段
+
+**时间格式**：
 - 支持多种时间格式输入（时间戳、ISO格式、北京时间等），AI自动转换为13位时间戳
 - 获取当前时间戳：`echo $(($(date +%s) * 1000))`
 
 **注意**：修改执行时间时，索引名也需要相应更新（索引日期从新的时间戳提取）。
 
+## 【数据转换规则】
+
+### 索引名转换
+
+**环境转换**：
+- 阿里生产 → Feature：`v3master` → `v3feature`
+- 阿里生产 → Test：`v3master` → `v3test`
+- 华为生产 → Feature：`hwv3master` → `v3feature`
+- 华为生产 → Test：`hwv3master` → `v3test`
+
+**日期转换**：
+- 从时间戳提取日期：将 13 位时间戳转换为北京时间，提取 `YYYY-MM-DD` 格式
+- 示例：`1735552200000` → `2025-12-30`
+
+**完整示例**：
+- 原索引：`http-access-log-v3master-openapi-domain-2025-12-30`
+- 转换后（Feature，保持日期）：`http-access-log-v3feature-openapi-domain-2025-12-30`
+- 转换后（Feature，改为 2026-01-05）：`http-access-log-v3feature-openapi-domain-2026-01-05`
+
+### 字段修改规则
+
+**org_id 字段**：
+- 需要修改的字段（根据日志类型可能包含）：
+  - `orgId`
+  - `x-org-id`（小写，接口/外部接口/事件日志）
+  - `X-Org-Id`（大写，中间表日志）
+- 修改方法：全部改为目标 org_id 的值
+
+**执行时间字段**：
+- 接口/事件/外部接口日志：`send_at`
+- 中间表日志：`@timestamp`
+- 值类型：13 位毫秒级 Unix 时间戳
+
+**不应修改的字段**：
+- `env` 相关字段
+- 业务数据字段
+- 文档结构和元数据
+
+### 时间处理规则
+
+**时间格式转换**：
+- 13 位时间戳：`1735552200000` → 直接使用
+- ISO 格式：`2026-01-05T12:00:00+08:00` → 转换为时间戳
+- 北京时间：`2026-01-05 12:00:00` → 转换为时间戳（东八区）
+- Shell 命令获取当前：`echo $(($(date +%s) * 1000))`
+
+**时间修改联动规则**：
+- 如果保持原时间：
+  - 索引日期：保持原值
+  - 执行时间字段：保持原值
+- 如果修改时间：
+  - 索引日期：从新时间戳提取 `YYYY-MM-DD` 格式
+  - 执行时间字段：改为新的 13 位时间戳
+
+**示例**：
+- 原索引：`http-access-log-v3master-openapi-domain-2025-12-30`
+- 原时间：`1735552200000` (2025-12-30 10:30:00)
+
+修改为当前时间（2026-01-05 14:20:00）：
+- 新索引：`http-access-log-v3feature-openapi-domain-2026-01-05`
+- 新时间：`1736061600000` (2026-01-05 14:20:00)
+- 修改字段：`send_at` 或 `@timestamp`
+
+## 【技术约束】
+
+### 环境限制
+
+| 环境 | Kibana 地址 | 支持的HTTP方法 |
+|------|------------|---------------|
+| 阿里生产 | `kibana.ali-prod.blacklake.tech` | GET |
+| 华为生产 | `kibana.hwyx-prod.blacklake.tech` | GET |
+| 国泰生产 | `kibana-ops.guotai.blacklake.tech` | GET |
+| Feature | `kibana.ali-test.blacklake.tech` | GET, PUT, POST |
+| Test | `kibana.ali-test.blacklake.tech` | GET, PUT, POST |
+
+### 索引名识别
+
+**生产环境索引标识**：
+- 包含 `v3master`：阿里生产或国泰生产
+- 包含 `hwv3master`：华为生产
+
+**测试环境索引标识**：
+- 包含 `v3feature`：Feature 环境
+- 包含 `v3test`：Test 环境
+
+### API 操作要求
+
+**查询操作（GET）**：
+- 所有环境都支持
+- 可以使用通配符索引模式
+
+**写入操作（PUT）**：
+- 仅测试环境支持（Feature, Test）
+- 必须使用完整索引名（包含具体日期）
+- 必须提供文档 ID
+
+**更新操作（POST _update）**：
+- 仅测试环境支持（Feature, Test）
+- 必须使用完整索引名
+- 必须提供文档 ID
+
 ## 【注意事项】
 
-1. **权限控制**：
-   - 生产环境（阿里、华为、国泰）**仅支持查询**，**绝对禁止写入**
-   - 允许写入的环境：仅限 Feature（`v3feature`）和 Test（`v3test`）
-
-2. **工作流程**：
+1. **工作流程**：
    - 必须按顺序执行步骤 1 → 步骤 2 → 步骤 3 → 步骤 4，不得跳过
    - 步骤 3（ID 冲突检查）是强制步骤，未执行视为严重错误
 
-3. **时间处理**：
-   - 步骤 2 必须询问用户执行时间处理方式
-   - 修改时间时，索引日期和执行时间字段同步修改
-   - 不修改时间时，索引日期和执行时间字段都保持原值
-
-4. **索引命名**：
-   - 查询时使用通配符 `*` 匹配日期
-   - 写入时必须使用完整索引名（包含具体日期）
-   - 索引日期根据时间处理方式决定（保持原值或从时间戳提取）
-
-5. **数据完整性**：
+2. **数据完整性**：
    - 写入时确保包含所有必要字段
    - 只修改 orgId 和执行时间字段（根据步骤2决策），其他字段保持不变
    - 保留原始 `_id` 以便追溯数据来源
