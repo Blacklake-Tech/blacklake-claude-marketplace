@@ -1,0 +1,252 @@
+# Self Assistant Plugin
+
+个人效率助手插件，提供 Git 提交规范化、智能快速提交、代码审查等功能。
+
+## 功能概览
+
+### 命令 (Commands)
+
+#### 1. `/quick-commit` - 智能快速提交
+
+智能分析暂存区变更，自动生成符合 [Conventional Commits](https://www.conventionalcommits.org/) 规范的提交信息。
+
+**功能特点**：
+- 🤖 自动推断提交类型（feat/fix/refactor/docs/chore 等）
+- 📁 从文件路径智能提取 scope（模块名）
+- ✍️ 生成规范的 subject（祈使语气、不超过 50 字符）
+- 🏷️ 自动添加 Co-Authored-By 标记
+
+**使用示例**：
+```bash
+# 1. 暂存要提交的文件
+git add src/api/user.ts
+
+# 2. 运行命令
+/quick-commit
+
+# 自动生成类似：feat(api): 添加用户管理接口
+```
+
+**Type 推断规则**：
+| 文件类型 | 推断类型 | 示例 |
+|---------|---------|------|
+| 新增功能代码 | `feat` | `feat(auth): 添加登录功能` |
+| 修复相关（包含 fix/bug 关键词） | `fix` | `fix(api): 修复空指针异常` |
+| 文档文件（.md/README） | `docs` | `docs: 更新安装说明` |
+| 测试文件 | `test` | `test(user): 添加用户测试` |
+| 依赖文件（package.json） | `build` | `build(deps): 升级 vue 到 3.4` |
+| CI 配置 | `ci` | `ci: 添加自动部署` |
+| 子模块 | `chore(submodule)` | `chore(submodule): 更新 ai-coder` |
+| 配置文件 | `chore` | `chore(config): 调整环境变量` |
+| 重构代码 | `refactor` | `refactor(db): 优化查询逻辑` |
+
+#### 2. `/normalize-commits` - 规范化提交历史
+
+分析并清理最近的提交历史，合并重复提交并将不规范提交改写为标准格式。
+
+**功能特点**：
+- 🔄 合并重复提交（相同消息、无意义提交）
+- ✨ 改写不规范提交为 Conventional Commits 格式
+- 📊 通过 git show 分析 diff 智能推断正确的 type 和 scope
+- 💾 自动创建备份分支（`back/normalize-YYYYMMDD-HHMMSS`）
+- 📈 提供详细的分析报告和统计信息
+- 🔒 安全第一：完整的回滚指令和验证
+
+**使用示例**：
+```bash
+/normalize-commits
+```
+
+**处理流程**：
+```
+1. 分析识别
+   ├─ 识别重复提交：相同消息、"1"/"2"/"test"/"wip" 等
+   ├─ 识别不规范提交：不符合 Conventional Commits 格式
+   └─ 分析每个不规范提交的 diff 推断正确格式
+
+2. 输出分析报告
+   ├─ 需要合并的提交分组
+   ├─ 需要改写的不规范提交列表
+   └─ 统计信息（合并前后提交数、改写数量）
+
+3. 执行处理
+   ├─ 创建备份分支
+   ├─ 合并重复提交（使用 git rebase -i squash）
+   ├─ 改写不规范提交（使用 git rebase -i reword）
+   └─ 验证所有提交符合规范
+
+4. 输出最终报告
+   ├─ 执行结果统计
+   ├─ 备份分支名称
+   ├─ 推送命令（git push --force-with-lease）
+   └─ 回滚命令（git reset --hard <backup>）
+```
+
+**识别模式**：
+
+| 模式 | 示例 | 处理方式 |
+|-----|------|---------|
+| 完全相同 | "更新"、"更新"、"更新" | 合并为 1 个 |
+| 仅数字不同 | "修改1"、"修改2"、"修改3" | 合并为 1 个 |
+| 无意义 | "1"、"2"、"test"、"wip" | 合并或删除 |
+| 不规范 | "添加功能"、"修改bug" | 改写为规范格式 |
+
+**改写示例**：
+```
+原提交                        → 规范化后
+─────────────────────────────────────────────────
+"添加 skills submodule"      → chore(submodule): 添加 skills 子模块
+"修改 blacklake plugin 名称" → refactor(plugin): 重命名 blacklake plugin
+"修复模板问题"                → fix(template): 修复工作流模板格式问题
+"Update submodule"           → chore(submodule): 更新子模块版本
+"更新配置"                    → chore(config): 更新配置文件
+```
+
+#### 3. `/code-review` - 代码审查
+
+对给定的 Pull Request 进行全面的代码审查。
+
+**功能特点**：
+- 👥 多 Agent 并行审查（4 个专业 agent）
+- 📋 CLAUDE.md 合规性检查
+- 🐛 Bug 检测和验证
+- ✅ 高信号问题过滤（减少误报）
+- 💬 内联评论和修复建议
+
+**使用示例**：
+```bash
+# 在 PR 分支或指定 PR 编号
+/code-review
+/code-review 123
+```
+
+## 安装
+
+### 方法 1：通过 Claude Code 安装
+
+```bash
+# 添加插件目录到 Claude Code 配置
+claude config plugins.add /path/to/blacklake-claude-marketplace/plugins/self-assistant-plugin
+```
+
+### 方法 2：手动复制
+
+```bash
+# 复制到 Claude Code 插件目录
+cp -r self-assistant-plugin ~/.claude/plugins/
+```
+
+## Git 提交规范参考
+
+本插件遵循 [Conventional Commits](https://www.conventionalcommits.org/) 规范。
+
+### 格式
+
+```
+<type>(<scope>): <subject>
+
+[optional body]
+
+[optional footer]
+```
+
+### Type 类型
+
+| Type | 说明 | 示例 |
+|------|------|------|
+| `feat` | 新功能 | `feat(auth): 添加用户登录功能` |
+| `fix` | Bug 修复 | `fix(api): 修复用户信息接口返回错误` |
+| `docs` | 文档更新 | `docs(readme): 更新安装说明` |
+| `style` | 代码格式（不影响功能） | `style: 统一缩进为2空格` |
+| `refactor` | 重构 | `refactor(utils): 优化日期处理函数` |
+| `perf` | 性能优化 | `perf(image): 启用图片懒加载` |
+| `test` | 测试相关 | `test(user): 添加用户模块单元测试` |
+| `build` | 构建系统或依赖 | `build(npm): 升级 webpack 到 5.0` |
+| `ci` | CI 配置 | `ci(github): 添加自动部署流程` |
+| `chore` | 其他更改 | `chore(deps): 更新依赖版本` |
+| `revert` | 回滚提交 | `revert: 回滚 feat(auth) 登录功能` |
+
+### 示例
+
+```bash
+# 新功能
+feat(user): 添加用户头像上传功能
+
+# Bug 修复
+fix(payment): 修复支付金额计算精度丢失
+
+# 文档更新
+docs: 更新 API 文档
+
+# 重构
+refactor(db): 重构数据库连接池
+
+# 子模块更新
+chore(submodule): 更新 ai-coder 子模块到最新版本
+
+# 带 breaking change
+feat(api): 重构用户认证接口
+
+BREAKING CHANGE: 原 /api/login 接口已废弃，请使用 /api/v2/auth/login
+```
+
+## 开发指南
+
+### 添加新命令
+
+1. 在 `commands/` 目录创建新的 `.md` 文件
+2. 按照以下格式编写：
+
+```markdown
+---
+description: 命令简短描述
+allowed-tools: Bash(git *), TodoWrite
+---
+
+## Context
+
+- 动态上下文注入：!`git status`
+
+## Your task
+
+任务描述...
+```
+
+### 命令开发最佳实践
+
+1. **Frontmatter 配置**
+   - `description`: 简明描述（<60 字符）
+   - `allowed-tools`: 严格限制工具权限
+   - `model`: 可选，根据复杂度选择（haiku/sonnet/opus）
+
+2. **动态上下文**
+   - 使用 `!` 命令获取实时 Git 状态
+   - 示例：`!`git log --oneline -10``
+
+3. **任务描述**
+   - 清晰明确的目标
+   - 具体的执行步骤
+   - 预期的输出格式
+
+## 版本历史
+
+### v1.0.0 (2026-01-08)
+
+- ✨ 新增 `quick-commit` 命令：智能生成规范提交
+- ✨ 新增 `normalize-commits` 命令：规范化提交历史（从 `clean-commits` 重命名并增强）
+- ✨ 新增 `code-review` 命令：PR 代码审查
+- 📝 完善插件文档和使用说明
+
+## 贡献
+
+欢迎提交 Issue 和 Pull Request！
+
+## 许可证
+
+MIT License
+
+## 相关链接
+
+- [Conventional Commits](https://www.conventionalcommits.org/)
+- [Claude Code Documentation](https://docs.anthropic.com/claude-code)
+- [Git Best Practices](https://git-scm.com/book/en/v2)
