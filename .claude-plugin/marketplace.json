@@ -1,6 +1,6 @@
 {
   "name": "blacklake-claude-marketplace",
-  "version": "1.0.4",
+  "version": "1.1.0",
   "owner": {
     "name": "Siting"
   },
@@ -46,14 +46,14 @@
       "category": "development"
     },
     {
-      "name": "video-analyst-plugin",
-      "source": "./plugins/video-analyst-plugin",
-      "description": "Video analysis plugin with frame analysis capabilities",
+      "name": "self-assistant-plugin",
+      "source": "./plugins/self-assistant-plugin",
+      "description": "个人效率助手插件，提供 Git 提交规范化、智能快速提交、代码审查等功能",
       "author": {
         "name": "Siting"
       },
-      "keywords": ["video", "analysis"],
-      "category": "exploration"
+      "keywords": ["git", "commit", "conventional-commits", "code-review", "productivity"],
+      "category": "productivity"
     },
     {
       "name": "op-plugin",
