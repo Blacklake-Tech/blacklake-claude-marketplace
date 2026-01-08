@@ -1,213 +1,12 @@
----
-name: db-metadata
-description: 提供v3_metadata数据库的SQL查询模板，包括对象编码（object_code）、对象名称、事件、按钮配置、自定义字段、元数据字段、插件中心等表的查询。查询对象编码、对象名称、自定义对象时使用。使用 exec_sql 工具执行查询。
----
+# 对象名称和 object_code 对应关系补充
 
-# v3_metadata 数据库查询
+本文档提供完整的对象名称到 object_code 的映射表。
 
-## 【查询工作流程】
+## 用途
 
-### 1. 确定查询目标和方法
+根据对象名称查找对应的 object_code。如果对象名称中包含"-"，则视为匹配失败。
 
-根据用户需求选择合适的查询方式：
-
-**对象相关查询**：
-- 根据对象名称查找对象编码 → 使用 `standard_business_object` 表
-- 查询对象的自定义字段 → 使用 `custom_field` 表关联 `standard_business_object`
-- 区分预置/自定义对象 → 根据 `org_id` 判断（-1为预置，其他为自定义）
-
-**事件相关查询**：
-- 查询事件配置 → 使用 `mq_event` 表
-- 查询事件转发配置 → 使用 `mq_event_subscribe_target_topic` 表
-- 查询事件体字段 → 使用 `mq_event_body_config` 关联 `meta_field_config`
-
-**按钮相关查询**：
-- 查询按钮配置 → 使用 `button_config` 表
-- 按对象编码、分类、来源筛选
-
-**插件中心查询**：
-- 查询插件配置 → 使用 `plugin_center` 表
-- 统计插件使用情况
-
-### 2. 构建并执行查询
-
-1. **选择合适的查询模板**（见下文【查询模板】章节）
-2. **确认表关联关系**（如需要跨表查询）
-3. **替换参数**：将模板中的 `{参数名}` 替换为实际值
-4. **注意删除标记**：确保包含 `deleted_at = 0` 条件
-5. **打印SQL**：在执行前先打印完整的 SQL 语句
-6. **执行查询**：使用 `exec_sql` 工具执行 SQL
-
-### 3. 结果分析和展示
-
-- 说明查询到的记录数量
-- 提取关键字段并结构化展示：
-  - 对象查询：`object_code`、`object_name`、`org_id`
-  - 事件查询：`id`、`event_type`、`event_name`
-  - 按钮查询：`id`、`object_code`、`category`、`source`
-  - 字段查询：`field_code`、`field_name`、`field_type`
-- 多条记录使用表格展示
-- 对于复杂关联查询，说明各表之间的关联关系
-
-**更多详细参考**：
-- 对象映射补充文档：[对象映射补充](./reference/object-mapping-supplement.md)
-- 事件查询模板：[事件查询SQL模板](./reference/event-queries.md)
-- 使用示例：[查询示例](./examples/)
-
-## 【通用规范】
-
-参考：[通用规范](./COMMON.md)
-
-## 执行方式
-
-所有查询使用 `exec_sql` 工具执行，参数替换为实际值。
-
-**重要**：在执行 SQL 前，必须先打印出完整的目标 SQL 语句，然后再使用 `exec_sql` 工具执行。
-
-**重要**：执行 SQL 后，必须对查询结果进行结构化展示：
-- 明确说明查询到的记录数量
-- 提取并展示关键字段的值（如对象编码、对象名称等）
-- 多条记录时使用表格或列表形式展示，避免直接输出原始 JSON 数据
-
-## 查询模板
-
-### standard_business_object
-
-**用途**：查询对象编码（object_code）和对象名称。根据对象名称查找对象编码，或根据对象编码查询对象信息。**常用表**。
-
-**字段**：
-- `object_code` - 对象编码
-- `object_name` - 对象名称
-- `org_id` - 租户ID（工厂号）
-  - 预置对象：`org_id = -1`
-  - 自定义对象：`org_id` 为对应的工厂号
-- `object_category` - 对象类别（1=自定义对象，2=预设对象）
-
-### mq_event
-
-**用途**：查询业务事件配置信息。
-
-**字段**：
-- `id` - 事件ID
-
-### mq_event_subscribe_target_topic
-
-**用途**：查询事件转发配置信息。
-
-**字段**：
-- `event_id` - 事件ID
-
-### mq_event_body_config
-
-**用途**：查询事件体字段配置信息。
-
-**字段**：
-- `event_id` - 事件ID
-- `biz_field_id` - 业务字段ID（关联 meta_field_config.id）
-
-### meta_field_config
-
-**用途**：查询字段类型配置信息，定义字段的数据类型和属性。
-
-**字段**：
-- `id` - 字段配置ID
-- `biz_source` - 业务来源（如 'BIZ_EVENT'）
-
-**关联关系**：
-- `meta_field_config.id` = `mq_event_body_config.biz_field_id`
-
-### button_config
-
-**用途**：查询按钮配置信息，包括按钮分类、来源等。
-
-**字段**：
-- `object_code` - 对象编码
-- `category` - 按钮分类（1=通用，2=新自定义，3=预置）
-- `source` - 按钮来源（1=web，2=app）
-
-### custom_field
-
-**用途**：查询自定义字段元数据配置信息，可以查询对象下的自定义字段定义。**常用表**。
-
-**字段**：
-- `object_code` - 对象编码
-- `field_id` - 字段ID（关联 meta_field_config.id）
-
-**关联关系**：
-- `custom_field.object_code` = `standard_business_object.object_code`
-- `custom_field.field_id` = `meta_field_config.id`
-
-**查询示例**：
-```sql
--- 按对象编码查询自定义字段
-SELECT * FROM v3_metadata.custom_field WHERE object_code = '{object_code}' AND deleted_at = 0;
-
--- 按租户ID和对象编码查询自定义字段（关联对象表验证）
-SELECT cf.* FROM v3_metadata.custom_field cf
-INNER JOIN v3_metadata.standard_business_object sbo ON cf.object_code = sbo.object_code
-WHERE sbo.org_id = {org_id} AND cf.object_code = '{object_code}' AND cf.deleted_at = 0 AND sbo.deleted_at = 0;
-```
-
-### plugin_center
-
-**用途**：查询插件中心配置信息，包括流程插件等。用于统计插件中心的租户数和流程个数。
-
-**字段**：
-- `id` - 插件ID
-- `org_id` - 租户ID（工厂id）
-- `code` - 按钮编号
-- `name` - 按钮名称
-- `type` - 插件类型（1=流程插件）
-- `status` - 状态（表示是否发布）
-- `wf_id` - 流程ID（用于统计流程个数）
-
-**查询示例**：
-```sql
--- 按租户查询插件中心配置
-SELECT * FROM v3_metadata.plugin_center WHERE org_id = {org_id} AND deleted_at = 0;
-
--- 统计已发布的流程插件
-SELECT 
-    COUNT(DISTINCT org_id) as tenant_count,
-    COUNT(DISTINCT wf_id) as workflow_count
-FROM v3_metadata.plugin_center
-WHERE type = 1 AND status = 1 AND deleted_at = 0 AND wf_id IS NOT NULL;
-```
-
-## 事件相关查询模板
-
-### 根据 event_id 查询事件配置
-
-**用途**：根据事件ID查询完整的事件配置数据，用于生成插入语句。
-
-#### 1. 事件源转发配置
-```sql
-SELECT * FROM v3_metadata.mq_event_subscribe_target_topic 
-WHERE event_id IN ({event_id}) AND deleted_at = 0;
-```
-
-#### 2. 事件配置
-```sql
-SELECT * FROM v3_metadata.mq_event 
-WHERE id IN ({event_id}) AND deleted_at = 0;
-```
-
-#### 3. 事件字段配置
-```sql
-SELECT * FROM v3_metadata.mq_event_body_config 
-WHERE event_id IN ({event_id}) AND deleted_at = 0;
-```
-
-#### 4. 事件字段类型配置
-```sql
-SELECT * FROM v3_metadata.meta_field_config t1
-LEFT JOIN v3_metadata.mq_event_body_config t2 ON t1.id = t2.biz_field_id
-WHERE biz_source = 'BIZ_EVENT' AND event_id IN ({event_id}) AND deleted_at = 0;
-```
-
-## 对象名称和 object_code 对应关系
-
-**用途**：根据对象名称查找对应的 object_code。如果对象名称中包含"-"，则视为匹配失败。
+## 映射表
 
 ```
 仓库 : Warehouse
@@ -656,11 +455,25 @@ SOP控件编辑记录 : SopControlValueEditRecord
 分析告警记录 : AnalysisRecord
 ```
 
-## 注意事项
+## 使用注意事项
 
-1. 参数替换：所有模板中的`{参数名}`都需要替换为实际值
-2. 删除标记：所有查询都包含`deleted_at = 0`条件
-3. 执行方式：必须通过 MCP 工具 `exec_sql` 执行
-4. 表结构查询：使用 `DESC table_name` 或 `SHOW COLUMNS FROM table_name` 查询
-5. 对象映射：如果对象名称中包含"-"，则视为匹配失败，返回错误信息
+1. **匹配规则**：对象名称中如果包含"-"，则视为匹配失败
+2. **查询方式**：使用 `standard_business_object` 表进行查询
+3. **预置 vs 自定义**：通过 `org_id` 字段区分（-1为预置，其他为自定义）
+4. **大小写敏感**：object_code 是大小写敏感的
 
+## 查询示例
+
+```sql
+-- 根据对象名称查询 object_code
+SELECT object_code, object_name, org_id
+FROM v3_metadata.standard_business_object
+WHERE object_name LIKE '%物料%'
+AND deleted_at = 0;
+
+-- 根据 object_code 查询对象信息
+SELECT *
+FROM v3_metadata.standard_business_object
+WHERE object_code = 'Material'
+AND deleted_at = 0;
+```

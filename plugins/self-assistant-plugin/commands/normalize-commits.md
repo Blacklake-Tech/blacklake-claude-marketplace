@@ -1,18 +1,40 @@
 ---
 description: 规范化 Git 提交历史（合并重复 + 改写不规范）
+argument-hint: [optional commit count, default: 30]
 allowed-tools: Bash(git *), TodoWrite
 ---
 
 ## Context
 
-- Recent commits: !`git log --oneline -30 --format="%h|%s|%ad" --date=format:'%Y-%m-%d'`
+- Commit count parameter: $ARGUMENTS (default: 30 if empty)
+- Recent commits: !`COMMIT_COUNT="${ARGUMENTS:-30}"; if [ "$COMMIT_COUNT" -lt 5 ]; then COMMIT_COUNT=5; elif [ "$COMMIT_COUNT" -gt 200 ]; then COMMIT_COUNT=200; fi; git log --oneline -$COMMIT_COUNT --format="%h|%s|%ad" --date=format:'%Y-%m-%d'`
 - Current branch: !`git branch --show-current`
 - Remote status: !`git status -sb`
 - Existing backup: !`git branch | grep 'back/normalize-'`
 
 ## Your task
 
-分析最近 30 个提交，识别并处理重复提交和不规范提交。创建 TodoList 跟踪进度。
+分析指定数量的最近提交（默认 30 个），识别并处理重复提交和不规范提交。创建 TodoList 跟踪进度。
+
+### 参数支持
+
+命令支持可选的提交数量参数：`$ARGUMENTS`
+- 无参数：分析最近 30 个提交（默认）
+- 有参数：分析指定数量的提交
+- 范围限制：5-200（自动调整超出范围的值）
+
+### 使用示例
+
+```bash
+# 分析最近 30 个提交（默认）
+/normalize-commits
+
+# 分析最近 50 个提交
+/normalize-commits 50
+
+# 分析最近 100 个提交
+/normalize-commits 100
+```
 
 ### 第一阶段：分析识别
 
@@ -34,44 +56,23 @@ allowed-tools: Bash(git *), TodoWrite
 
 **输出分析报告示例**：
 ```
-🔍 提交历史分析报告
+📊 分析：30 个提交
+├─ 合并：7 → 2
+├─ 改写：15
+└─ 已规范：8
 
-总提交数：30
+重复提交：
+- "更新" x3 → chore: 批量更新
+- "update submodule" x4 → chore(submodule): 更新子模块
 
-【需要合并的重复提交】
-组1: "更新" (3个提交)
-  - a1b2c3d 更新 (2026-01-05)
-  - d4e5f6g 更新 (2026-01-06)
-  - h7i8j9k 更新 (2026-01-07)
-  → 建议合并为：chore: 批量更新配置和依赖
-
-组2: "update submodule" (4个提交)
-  - k1l2m3n update submodule (2026-01-03)
-  - n4o5p6q update submodule (2026-01-04)
-  → 建议合并为：chore(submodule): 更新子模块版本
-
-【需要改写的不规范提交】
-1. abc1234 "添加 skills submodule" (2026-01-08)
-   变更：.gitmodules, skills/ (新增子模块)
-   → 建议改写为：chore(submodule): 添加 skills 子模块
-
-2. def5678 "修改 blacklake plugin 名称" (2026-01-07)
-   变更：plugins/blacklake-plugin/config.json (重命名)
-   → 建议改写为：refactor(plugin): 重命名 blacklake plugin
-
-【已规范的提交】
-- chore: add op-agent submodule ✓
-- feat: 添加 WORKFLOW_DOMAIN_URL ✓
-
-统计：
-- 需要合并：7 → 2 个提交
-- 需要改写：15 个提交
-- 已规范：8 个提交
+不规范提交：
+- "添加 skills" → chore(submodule): 添加 skills 子模块
+- "修改名称" → refactor(plugin): 重命名 blacklake plugin
 ```
 
 ### 第二阶段：执行处理
 
-1. **创建备份**：`back/normalize-$(date +%Y%m%d-%H%M%S)`
+1. **创建备份**：`back/normalize-$(date +%Y%m%d)`
 
 2. **合并重复提交**：使用 `git rebase -i` 将重复提交 squash，生成规范的合并消息
 
@@ -81,26 +82,17 @@ allowed-tools: Bash(git *), TodoWrite
 
 5. **输出报告**：
 ```
-✅ Git 提交历史规范化完成！
+✅ 规范化完成：30 → 18 个提交
 
-执行结果：
-- 合并前提交数：30
-- 合并后提交数：18
-- 减少提交数：12
+合并：
+- "更新" (3→1)
+- "update submodule" (4→1)
 
-合并详情：
-1. 组1 "更新" (3→1) → chore: 批量更新配置和依赖
-2. 组2 "update submodule" (4→1) → chore(submodule): 更新子模块版本
+改写：15 个提交
 
-改写详情：
-1. "添加 skills" → chore(submodule): 添加 skills 子模块
-2. "修改名称" → refactor(plugin): 重命名 blacklake plugin
-
-备份分支：back/normalize-20260108-143022
-
-下一步操作：
+备份：back/normalize-20260108
 推送：git push --force-with-lease
-回滚：git reset --hard back/normalize-20260108-143022
+回滚：git reset --hard back/normalize-20260108
 ```
 
 ### Type 推断规则
@@ -132,13 +124,13 @@ allowed-tools: Bash(git *), TodoWrite
 - **始终创建备份**：包含时间戳避免冲突
 - **保持时间顺序**：不改变提交的原始顺序
 - **保留作者信息**：只修改消息，不改作者和时间
-- **添加 Co-Authored-By**：所有合并和改写的提交都添加
+- **保持简洁**：生成的提交消息简洁明了
 - **检测远程状态**：如已推送，警告 force push 风险
 - **验证彻底**：确保所有提交符合 Conventional Commits
 
 ### 安全措施
 
-- 备份分支命名：`back/normalize-YYYYMMDD-HHMMSS`
+- 备份分支命名：`back/normalize-YYYYMMDD`
 - 每次 rebase 后验证结果
 - 提供完整的回滚指令
 - 重要操作前等待用户确认

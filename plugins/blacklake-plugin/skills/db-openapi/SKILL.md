@@ -5,6 +5,34 @@ description: 查询集成连接器和API配置（v3_openapi数据库）。使用
 
 # v3_openapi 数据库查询
 
+## 【查询工作流程】
+
+### 1. 确定查询目标
+
+根据用户需求，明确要查询的连接器或API配置：
+- 查询租户的所有连接器：查询 `integrated_connector` 表
+- 查询特定API接口详情：使用 `interface_id` 查询
+- 查询连接器下的所有API：使用 `connector_id` 关联查询
+- 查询API的字段配置：查询 `integrated_connector_api_field` 表
+
+### 2. 构建并执行查询
+
+1. **选择合适的查询模板**（见下文【查询模板】章节）
+2. **替换参数**：将模板中的 `{参数名}` 替换为实际值
+3. **注意删除标记**：确保包含 `deleted_at = 0` 条件
+4. **处理关联查询**：连接器与API、API与字段之间的关联关系
+5. **打印SQL**：在执行前先打印完整的 SQL 语句
+6. **执行查询**：使用 `exec_sql` 工具执行 SQL
+
+### 3. 结果展示
+
+- 说明查询到的记录数量
+- 提取关键字段：
+  - 连接器：ID (`id`)、域名 (`host`)、端口 (`port`)
+  - API：ID (`id`)、名称 (`name`)、URL (`url`)、请求方式 (`http_method`)
+  - 字段：字段名 (`field_name`)、字段类型 (`field_type`)、是否必填 (`required`)、请求/响应标识 (`req_or_res`)
+- 多条记录使用表格展示，按 `req_or_res` 和 `id` 排序
+
 ## 【通用规范】
 
 参考：[通用规范](./COMMON.md)

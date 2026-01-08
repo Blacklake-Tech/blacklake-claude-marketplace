@@ -14,17 +14,22 @@
 - 🤖 自动推断提交类型（feat/fix/refactor/docs/chore 等）
 - 📁 从文件路径智能提取 scope（模块名）
 - ✍️ 生成规范的 subject（祈使语气、不超过 50 字符）
-- 🏷️ 自动添加 Co-Authored-By 标记
+- ⚡ 简洁高效的提交流程
+- 📝 支持自定义提交消息（带格式验证）
+- 🔧 完整 Git 工作流支持（push/pull/branch/merge 等）
 
 **使用示例**：
 ```bash
 # 1. 暂存要提交的文件
 git add src/api/user.ts
 
-# 2. 运行命令
+# 2. 自动生成提交消息
 /quick-commit
-
 # 自动生成类似：feat(api): 添加用户管理接口
+
+# 3. 使用自定义消息（会验证格式）
+/quick-commit "feat(auth): 添加用户登录功能"
+/quick-commit "fix(api): 修复空指针异常"
 ```
 
 **Type 推断规则**：
@@ -48,13 +53,21 @@ git add src/api/user.ts
 - 🔄 合并重复提交（相同消息、无意义提交）
 - ✨ 改写不规范提交为 Conventional Commits 格式
 - 📊 通过 git show 分析 diff 智能推断正确的 type 和 scope
-- 💾 自动创建备份分支（`back/normalize-YYYYMMDD-HHMMSS`）
-- 📈 提供详细的分析报告和统计信息
+- 💾 自动创建备份分支（`back/normalize-YYYYMMDD`）
+- 📈 提供简洁的分析报告和统计信息
 - 🔒 安全第一：完整的回滚指令和验证
+- 🎯 支持自定义分析范围（默认 30 个提交，可指定 5-200）
 
 **使用示例**：
 ```bash
+# 分析最近 30 个提交（默认）
 /normalize-commits
+
+# 分析最近 50 个提交
+/normalize-commits 50
+
+# 分析最近 100 个提交
+/normalize-commits 100
 ```
 
 **处理流程**：
@@ -75,11 +88,10 @@ git add src/api/user.ts
    ├─ 改写不规范提交（使用 git rebase -i reword）
    └─ 验证所有提交符合规范
 
-4. 输出最终报告
-   ├─ 执行结果统计
-   ├─ 备份分支名称
-   ├─ 推送命令（git push --force-with-lease）
-   └─ 回滚命令（git reset --hard <backup>）
+4. 输出简洁报告
+   ├─ 统计摘要
+   ├─ 备份分支
+   └─ 推送/回滚命令
 ```
 
 **识别模式**：
