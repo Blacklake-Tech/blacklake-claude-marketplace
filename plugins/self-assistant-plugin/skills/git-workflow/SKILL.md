@@ -5,9 +5,9 @@ description: Git 工作流程序性知识，提供 Conventional Commits 规范�
 
 # Git 工作流程序性知识
 
-## 【通用规范】
+## 【Git 通用规范】
 
-参考：[通用规范](./COMMON.md)
+参考：[Git 通用规范](./COMMON.md)
 
 ## 【Conventional Commits 规范】
 

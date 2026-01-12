@@ -6,10 +6,13 @@ Claude Code 插件市场项目，提供代码开发和 OP 平台相关的插件�
 
 `blacklake-claude-marketplace` 是一个 Claude Code 插件市场，包含多个核心插件：
 
-- **coder-flow**：流程开发插件（designer、developer agents）
-- **coder-web**：Web 开发插件（frontend-html、frontend-react agents）
-- **coder-explore**：探索插件（包含视频分析 skill）
+- **self-assistant-plugin**：个人效率助手插件（Git 提交规范化、智能快速提交、代码审查）
+- **blacklake-plugin**：Blacklake 内部运维助手插件（工作流排查、连接器配置、平台分析、数据库操作）
 - **op-plugin**：OP 平台插件（工作流、连接器、事件和数据库相关的 agents 和 skills）
+- **coder-flow-plugin**：流程开发插件（designer、developer agents）
+- **coder-web-plugin**：Web 开发插件（frontend-html、frontend-react agents）
+- **coder-beta-plugin**：Beta 开发插件（frontend agents）
+- **mcp-plugin**：MCP 服务器配置插件
 
 ## 项目结构
 
@@ -161,31 +164,87 @@ claude --debug
 
 ## 插件说明
 
-### coder-flow
+### self-assistant-plugin ⭐ (v2.0.0)
 
-流程开发插件，包含：
+**个人效率助手插件**，提供 Git 工作流优化和代码审查功能。
+
+**Commands**：
+- `/quick-commit` - 智能快速提交（自动生成 Conventional Commits 格式）
+- `/normalize-commits` - 规范化提交历史（合并重复 + 改写不规范）
+- `/code-review` - PR 代码审查（多 Agent 并行审查）
+
+**Skills**：
+- `git-workflow` - Git 工作流程序性知识（Conventional Commits 规范、Type/Scope 推断、Rebase 操作指南）
+
+**核心特性**：
+- ✅ 任务清单管理（TodoWrite）
+- ✅ 进度实时通知（emoji + 状态文本）
+- ✅ 强制用户确认（AskQuestion）
+- ✅ 结构化输出（分隔线 + 表格）
+- ✅ 完善错误处理（5种错误场景）
+- ✅ 安全第一（自动备份 + 回滚指令）
+
+**参考来源**：基于17个官方 Skills 最佳实践（pdf, docx, pptx, xlsx, mcp-builder, algorithmic-art, canvas-design, frontend-design, internal-comms 等）
+
+### blacklake-plugin (v1.0.4)
+
+**Blacklake 内部运维助手插件**，专注于工作流问题排查和平台数据分析。
+
+**Agents**：
+- `workflow-troubleshooter` - 工作流排查和诊断
+- `connector-registrar` - 连接器配置 SQL 生成
+- `platform-analyst` - 平台数据统计分析
+- `button-configurator` - 按钮配置 SQL 生成
+- `event-configurator` - 事件配置 JSON/SQL 生成
+- `log-analyst` - ES 日志分析专家
+
+**Skills**：
+- `db-common` - 通用数据库查询工作流程
+- `db-metadata` - v3_metadata 数据库查询
+- `db-openapi` - v3_openapi 数据库查询
+- `db-user` - v3_user 数据库查询
+- `db-e-report` - v3_e-report 数据库查询
+- `es-log` - ES 日志查询和写入
+
+### op-plugin (v1.0.4)
+
+**OP 平台插件**，提供工作流、连接器、事件和数据库操作。
+
+**Agents**：`op-button`、`op-connector`、`op-event`、`op-workflow`、`op-statistics`
+
+**Skills**：`op-db`、`op-db-metadata`、`op-db-openapi`、`op-db-user`、`op-db-e-report`
+
+### coder-flow-plugin (v1.0.4)
+
+**流程开发插件**，包含：
 - `designer` - 系统集成方案设计专家
-- `developer` - 资深Java开发工程师
+- `developer` - 资深 Java 开发工程师
 
-### coder-web
+### coder-web-plugin (v1.0.4)
 
-Web 开发插件，包含：
-- `frontend-html` - 通用Web页面生成专家
-- `frontend-react` - 专业React应用开发专家
+**Web 开发插件**，包含：
+- `frontend-html` - 通用 Web 页面生成专家
+- `frontend-react` - 专业 React 应用开发专家
 
-### op-plugin
+### coder-beta-plugin (v1.0.4)
 
-OP 平台插件，包含：
-- **Agents**：`op-button`、`op-connector`、`op-event`、`op-workflow`、`op-statistics`
-- **Skills**：`op-db`、`op-db-metadata`、`op-db-openapi`、`op-db-user`、`op-db-e-report`
+**Beta 开发插件**，包含前端开发 agents。
+
+### mcp-plugin (v1.0.4)
+
+**MCP 服务器配置插件**，用于 OP 平台集成。
 
 ## 版本管理
 
-版本号在各个插件的 `.claude-plugin/plugin.json` 中管理，使用语义化版本号（SemVer）格式：`主版本号.次版本号.修订号`（如 `1.0.1`）。
+版本号遵循 [语义化版本](https://semver.org/lang/zh-CN/) 规范：`主版本号.次版本号.修订号`
+
+**当前版本**：`2.0.0`
 
 **更新策略**：
 - 重大功能更新或 API 变更：升级主版本号（如 `1.0.1` → `2.0.0`）
 - 新增功能：升级次版本号（如 `1.0.1` → `1.1.0`）
 - 文档优化、bug 修复等小更新：升级修订号（如 `1.0.1` → `1.0.2`）
 
-发布时更新对应插件的版本号，并创建 Git 标签。
+**详细信息**：
+- 版本管理策略：[VERSION_MANAGEMENT.md](./VERSION_MANAGEMENT.md)
+- 变更历史：[CHANGELOG.md](./CHANGELOG.md)
