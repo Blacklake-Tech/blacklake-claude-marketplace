@@ -1,22 +1,42 @@
 # Blacklake Claude Marketplace
 
-Claude Code 插件市场项目，提供 Blacklake 平台运维、代码开发和个人效率工具的插件集合。
+[![Version](https://img.shields.io/badge/version-1.1.0-blue.svg)](https://github.com/Blacklake-Tech/blacklake-claude-marketplace)
+[![Online Demo](https://img.shields.io/badge/demo-online-success.svg)](https://ai-coder-test.blacklake.tech/)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](./LICENSE)
 
-> 🌐 **在线体验**: 所有插件也可以在 [https://ai-coder-test.blacklake.tech/](https://ai-coder-test.blacklake.tech/) 上直接使用，无需本地安装！
+Claude Code 插件市场项目，提供 Blacklake 平台运维、代码开发和个人效率工具的专业插件集合。
 
-## 项目简介
+> 🌐 **在线体验**: [https://ai-coder-test.blacklake.tech/](https://ai-coder-test.blacklake.tech/) - 无需安装，打开即用！
 
-`blacklake-claude-marketplace` 是一个专业的 Claude Code 插件市场，包含 **7 个核心插件**，覆盖平台运维、代码开发、效率工具等多个领域。
+## 目录
 
-**核心优势**：
-- 🎯 **专业化**: 每个插件专注特定领域，提供深度功能
-- 🚀 **开箱即用**: 预配置 MCP 服务，安装后立即可用
-- 🔄 **版本同步**: 统一版本管理，确保兼容性
-- 🌐 **在线 + 本地**: 支持在线平台和本地 Claude Code 两种使用方式
+- [亮点特性](#亮点特性-)
+- [快速开始](#快速开始-)
+- [使用场景](#使用场景-)
+- [插件生态](#插件生态-)
+- [更多示例](#更多示例-)
+- [完整文档](#完整文档-)
+- [常见问题](#常见问题-)
+- [团队协作](#团队协作-)
+- [贡献指南](#贡献指南-)
+- [更新日志](#更新日志-)
+- [许可证](#许可证-)
 
-## 快速开始
+---
 
-### 方式一：使用在线版本 (推荐新手)
+## 亮点特性 ✨
+
+- 🎯 **专业化**: 7 个核心插件覆盖平台运维、代码开发、效率工具等多个领域，每个插件专注特定功能
+- 🚀 **开箱即用**: 预配置 MCP 服务，统一版本管理，安装后立即可用
+- 🌐 **双模式**: 支持在线平台和本地 Claude Code 两种使用方式，灵活适配不同场景
+- 🤖 **智能化**: 20+ 专业 Agents 自动处理复杂任务，6+ Skills 提供深度领域知识
+- 🔄 **版本同步**: 统一版本管理确保所有插件兼容性，自动更新始终最新
+
+---
+
+## 快速开始 🚀
+
+### 方式一：使用在线版本（推荐新手）
 
 最简单的方式，无需任何安装配置：
 
@@ -49,13 +69,15 @@ Claude Code 插件市场项目，提供 Blacklake 平台运维、代码开发和
 # 直接对话即可，Claude 会自动调用相应的 agent
 ```
 
-更多安装方式请参考 [安装配置](#安装配置) 章节。
+更多安装方式请参考 [完整文档 - 安装配置](#完整文档-)。
 
-### 开始使用
+---
+
+## 使用场景 💡
 
 安装完成后，就可以直接对话使用了！下面是几个实用示例：
 
-#### 💡 示例 1: 查询工厂信息
+### 示例 1: 查询工厂信息
 
 ```
 用户: "查询一下 BLK001 工厂的信息"
@@ -78,7 +100,7 @@ Claude 自动执行:
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
-#### 💡 示例 2: 配置第三方接口连接器
+### 示例 2: 配置第三方接口连接器
 
 ```
 用户: "帮我配置一个连接器，调用 ERP 系统的订单查询接口"
@@ -110,7 +132,7 @@ VALUES (1234567891, 1234567890, '/api/orders/{orderId}', 'GET', ...);
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
-#### 💡 示例 3: 查询对象自定义字段
+### 示例 3: 查询对象自定义字段
 
 ```
 用户: "查询一下 prod-ali 环境，BLK001 工厂，采购订单对象的自定义字段"
@@ -144,18 +166,32 @@ Claude 自动执行:
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
-更多使用场景请参考 [使用示例](#使用示例) 章节。
+---
 
-## 插件详细介绍
+## 插件生态 📦
 
-### 📦 blacklake-plugin (v1.0.9)
+`blacklake-claude-marketplace` 包含 **7 个核心插件**，覆盖平台运维、代码开发、效率工具等多个领域。
 
-**Blacklake 内部运维助手插件** - 专注于工作流问题排查、连接器配置、平台数据分析和数据库操作
+### 核心插件一览
+
+| 插件 | 版本 | 功能概述 |
+|------|------|----------|
+| **blacklake-plugin** | v1.0.9 | Blacklake 内部运维助手 - 工作流排查、连接器配置、平台数据分析 |
+| **self-assistant-plugin** | v1.0.0 | 个人效率助手 - Git 工作流优化和代码审查 |
+| **coder-beta-plugin** | v1.0.4 | Beta 开发插件 - 多种前端框架开发支持 |
+| **coder-flow-plugin** | v1.0.4 | 流程开发插件 - 系统集成架构设计与 Java 开发 |
+| **coder-web-plugin** | v1.0.4 | Web 开发插件 - React 应用开发专家 |
+| **op-plugin** | v1.0.4 | OP 平台插件 - 工作流、连接器、事件和数据库操作 |
+| **mcp-plugin** | v1.0.4 | MCP 服务配置插件 - 为其他插件提供统一的 MCP 服务 |
+
+<details>
+<summary><b>📦 blacklake-plugin (v1.0.9) - Blacklake 内部运维助手</b></summary>
+
+**专注于工作流问题排查、连接器配置、平台数据分析和数据库操作**
 
 **MCP 服务**: op (https://op-mcp-test.blacklake.tech/mcp)
 
-<details>
-<summary><b>🤖 Agents (7个)</b></summary>
+**Agents (7个)**:
 
 | Agent | 功能描述 |
 |-------|----------|
@@ -167,10 +203,7 @@ Claude 自动执行:
 | `log-analyst` | 📝 ES 日志分析专家 - 日志查询、生产数据造数和时间修改 |
 | `op-connector` | 🔌 连接器配置专家 (备用) - 同 connector-registrar 功能 |
 
-</details>
-
-<details>
-<summary><b>⚙️ Skills (6个)</b></summary>
+**Skills (6个)**:
 
 | Skill | 功能描述 |
 |-------|----------|
@@ -189,8 +222,6 @@ Claude 自动执行:
 - `generate_ids` - 批量生成全局唯一 ID
 - `data_sync` - 对象库主数据同步
 
-</details>
-
 **适用场景**:
 - ✅ 工作流执行失败排查
 - ✅ 连接器快速配置
@@ -198,16 +229,16 @@ Claude 自动执行:
 - ✅ 测试环境数据准备
 - ✅ 数据库配置查询
 
----
+</details>
 
-### 📦 self-assistant-plugin (v1.0.0)
+<details>
+<summary><b>📦 self-assistant-plugin (v1.0.0) - 个人效率助手</b></summary>
 
-**个人效率助手插件** - 提供 Git 工作流优化和代码审查功能
+**提供 Git 工作流优化和代码审查功能**
 
 **作者**: Siting
 
-<details>
-<summary><b>🎯 Commands (3个)</b></summary>
+**Commands (3个)**:
 
 | Command | 功能描述 |
 |---------|----------|
@@ -215,16 +246,11 @@ Claude 自动执行:
 | `/normalize-commits` | 🔧 规范化提交历史 - 合并重复提交 + 改写不规范提交为标准格式 |
 | `/code-review` | 👀 PR 代码审查 - 多 Agent 并行审查，提供专业的代码质量反馈 |
 
-</details>
-
-<details>
-<summary><b>⚙️ Skills (1个)</b></summary>
+**Skills (1个)**:
 
 | Skill | 功能描述 |
 |-------|----------|
 | `git-workflow` | 📚 Git 工作流知识库 - Conventional Commits 规范、Type/Scope 推断规则、Rebase 操作指南 |
-
-</details>
 
 **核心特性**:
 - ✅ 任务清单管理 (TodoWrite)
@@ -234,16 +260,14 @@ Claude 自动执行:
 - ✅ 完善错误处理
 - ✅ 安全第一 (自动备份 + 回滚指令)
 
-**参考来源**: 基于 17 个官方 Skills 最佳实践
-
----
-
-### 📦 coder-beta-plugin (v1.0.4)
-
-**Beta 开发插件** - 提供多种前端框架的开发支持
+</details>
 
 <details>
-<summary><b>🤖 Agents (4个)</b></summary>
+<summary><b>📦 coder-beta-plugin (v1.0.4) - Beta 开发插件</b></summary>
+
+**提供多种前端框架的开发支持**
+
+**Agents (4个)**:
 
 | Agent | 功能描述 |
 |-------|----------|
@@ -252,10 +276,7 @@ Claude 自动执行:
 | `frontend-react` | ⚛️ React 专家 - React 18+ Hooks 应用开发 |
 | `frontend-vue` | 💚 Vue.js 专家 - Vue.js 应用开发 |
 
-</details>
-
-<details>
-<summary><b>⚙️ Skills (1个)</b></summary>
+**Skills (1个)**:
 
 | Skill | 功能描述 |
 |-------|----------|
@@ -266,52 +287,45 @@ Claude 自动执行:
 - report-app - 报表应用模板
 - report-h5 - H5 移动端报表模板
 
-</details>
-
 **适用场景**:
 - ✅ 企业级管理系统开发
 - ✅ 数据可视化看板
 - ✅ 移动端 H5 应用
 - ✅ 原型快速搭建
 
----
-
-### 📦 coder-flow-plugin (v1.0.4)
-
-**流程开发插件** - 系统集成架构设计与 Java 开发
+</details>
 
 <details>
-<summary><b>🤖 Agents (2个)</b></summary>
+<summary><b>📦 coder-flow-plugin (v1.0.4) - 流程开发插件</b></summary>
+
+**系统集成架构设计与 Java 开发**
+
+**Agents (2个)**:
 
 | Agent | 功能描述 |
 |-------|----------|
 | `designer` | 🎨 系统集成方案设计专家 - 需求分析和架构设计，输出 design.md 和 plan.md |
 | `developer` | 👨‍💻 资深 Java 开发工程师 - 将设计文档转化为高质量的可执行代码 |
 
-</details>
-
 **工作流程**:
 1. `designer` 负责需求分析和方案设计（不生成代码）
 2. `developer` 根据设计文档实现代码（仅编辑 Flow.java）
 3. 清晰的职责分离，确保代码质量
 
----
-
-### 📦 coder-web-plugin (v1.0.4)
-
-**Web 开发插件** - React 应用开发专家
+</details>
 
 <details>
-<summary><b>🤖 Agents (1个)</b></summary>
+<summary><b>📦 coder-web-plugin (v1.0.4) - Web 开发插件</b></summary>
+
+**React 应用开发专家**
+
+**Agents (1个)**:
 
 | Agent | 功能描述 |
 |-------|----------|
 | `frontend-react` | ⚛️ React 应用开发专家 - React 18+ (Hooks)、ES Modules、内联样式/CSS Modules |
 
-</details>
-
-<details>
-<summary><b>⚙️ Skills (1个)</b></summary>
+**Skills (1个)**:
 
 | Skill | 功能描述 |
 |-------|----------|
@@ -324,16 +338,14 @@ Claude 自动执行:
 
 </details>
 
----
+<details>
+<summary><b>📦 op-plugin (v1.0.4) - OP 平台插件</b></summary>
 
-### 📦 op-plugin (v1.0.4)
-
-**OP 平台插件** - 提供工作流、连接器、事件和数据库操作
+**提供工作流、连接器、事件和数据库操作**
 
 **MCP 服务**: op (https://op-mcp-test.blacklake.tech/mcp)
 
-<details>
-<summary><b>🤖 Agents (4个)</b></summary>
+**Agents (4个)**:
 
 | Agent | 功能描述 |
 |-------|----------|
@@ -342,10 +354,7 @@ Claude 自动执行:
 | `op-event` | ⚡ 事件配置专家 - 生成事件配置 JSON |
 | `op-statistics` | 📊 平台数据统计专家 - 多维度数据分析 |
 
-</details>
-
-<details>
-<summary><b>⚙️ Skills (5个)</b></summary>
+**Skills (5个)**:
 
 | Skill | 功能描述 |
 |-------|----------|
@@ -357,23 +366,25 @@ Claude 自动执行:
 
 </details>
 
----
+<details>
+<summary><b>📦 mcp-plugin (v1.0.4) - MCP 服务配置插件</b></summary>
 
-### 📦 mcp-plugin (v1.0.4)
-
-**MCP 服务器配置插件** - 为 OP 平台提供共享的 MCP 服务配置
+**为 OP 平台提供共享的 MCP 服务配置**
 
 **功能**: 作为基础设施层，为其他插件提供统一的 MCP 服务连接配置
 
 **MCP 服务**: op (https://op-mcp-test.blacklake.tech/mcp)
 
+</details>
+
 ---
 
-## 使用示例
+## 更多示例 📚
 
 以下是一些常见的业务场景示例，展示 Blacklake Plugin 的实际应用。
 
-### 💼 场景 1: 工作流问题排查
+<details>
+<summary><b>💼 场景 1: 工作流问题排查</b></summary>
 
 当工作流执行失败时，快速定位问题原因：
 
@@ -416,7 +427,10 @@ Claude 自动执行:
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
-### 📊 场景 2: 平台数据统计分析
+</details>
+
+<details>
+<summary><b>📊 场景 2: 平台数据统计分析</b></summary>
 
 查询和分析平台使用数据：
 
@@ -456,7 +470,10 @@ Claude 自动执行:
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
-### 🧪 场景 3: 测试环境数据准备
+</details>
+
+<details>
+<summary><b>🧪 场景 3: 测试环境数据准备</b></summary>
 
 从生产环境复制日志数据到测试环境：
 
@@ -498,7 +515,10 @@ Claude 自动执行:
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
-### 🔧 场景 4: 批量配置管理
+</details>
+
+<details>
+<summary><b>🔧 场景 4: 批量配置管理</b></summary>
 
 批量生成按钮配置或事件配置：
 
@@ -535,7 +555,10 @@ VALUES (1234567892, 'purchase_order', 'close', '关闭', ...);
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
-### 🔎 场景 5: 多维度数据查询
+</details>
+
+<details>
+<summary><b>🔎 场景 5: 多维度数据查询</b></summary>
 
 复杂的跨表查询和数据关联：
 
@@ -583,11 +606,16 @@ Claude 自动执行:
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
+</details>
+
 ---
 
-## 安装配置
+## 完整文档 📖
 
-### 方式一：插件市场安装 (推荐)
+<details>
+<summary><b>安装配置</b></summary>
+
+### 方式一：插件市场安装（推荐）
 
 通过插件市场统一管理和分发插件：
 
@@ -681,7 +709,10 @@ claude --debug
 
 **注意**: 删除市场不会自动删除已安装的插件，需要单独执行删除插件命令。
 
-## 项目结构
+</details>
+
+<details>
+<summary><b>项目结构</b></summary>
 
 ```
 blacklake-claude-marketplace/
@@ -711,7 +742,10 @@ blacklake-claude-marketplace/
 └── README.md                         # 本文档
 ```
 
-## 版本管理
+</details>
+
+<details>
+<summary><b>版本管理</b></summary>
 
 版本号遵循 [语义化版本](https://semver.org/lang/zh-CN/) 规范：`主版本号.次版本号.修订号`
 
@@ -726,7 +760,11 @@ blacklake-claude-marketplace/
 - 📋 版本管理策略：[VERSION_MANAGEMENT.md](./VERSION_MANAGEMENT.md)
 - 📝 变更历史：[CHANGELOG.md](./CHANGELOG.md)
 
-## 常见问题
+</details>
+
+---
+
+## 常见问题 ❓
 
 <details>
 <summary><b>Q: Blacklake Plugin 和 OP Plugin 有什么区别？</b></summary>
@@ -774,7 +812,52 @@ blacklake-claude-marketplace/
 
 </details>
 
-## 贡献指南
+---
+
+## 团队协作 👥
+
+### 内部分享建议
+
+**新员工培训**:
+1. 先体验在线版本 [https://ai-coder-test.blacklake.tech/](https://ai-coder-test.blacklake.tech/)
+2. 了解核心插件功能（blacklake-plugin、self-assistant-plugin）
+3. 实际场景练习（查询工厂、配置连接器、排查工作流）
+
+**技术分享**:
+- 展示具体业务场景（使用 [使用场景](#使用场景-) 中的示例）
+- 介绍常用 agents 和使用场景（workflow-troubleshooter、platform-analyst 等）
+- 分享团队最佳实践和经验
+
+**问题排查**:
+- 使用 `workflow-troubleshooter` agent 排查工作流问题
+- 使用 `log-analyst` agent 分析日志
+- 使用 `platform-analyst` agent 统计和分析数据
+
+### 最佳实践
+
+**使用场景文档化**:
+- 记录团队常用的查询模板和 SQL 语句
+- 整理典型业务场景的处理流程
+- 维护内部知识库和 FAQ
+
+**常见问题收集**:
+- 收集团队遇到的问题和解决方案
+- 更新补充 [常见问题](#常见问题-) 章节
+- 建立内部技术支持渠道
+
+**经验分享**:
+- 定期分享使用技巧和新功能
+- 鼓励团队成员贡献插件和改进
+- 建立最佳实践和代码规范
+
+**团队协作工具**:
+- 使用 `/code-review` 命令进行代码审查
+- 使用 `/quick-commit` 命令保持提交规范
+- 使用 `/normalize-commits` 命令清理提交历史
+
+---
+
+## 贡献指南 🤝
 
 欢迎贡献新的插件或改进现有功能！
 
@@ -786,7 +869,15 @@ blacklake-claude-marketplace/
 
 **提交规范**: 使用 `self-assistant-plugin` 的 `/quick-commit` 命令自动生成规范的提交消息！
 
-## 许可证
+---
+
+## 更新日志 📝
+
+详见 [CHANGELOG.md](./CHANGELOG.md)
+
+---
+
+## 许可证 📄
 
 MIT License - 详见 [LICENSE](./LICENSE) 文件
 
