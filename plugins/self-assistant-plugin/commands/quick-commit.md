@@ -12,6 +12,7 @@ color: green
 - Staged changes: !`git diff --cached --stat`
 - Staged diff details: !`git diff --cached`
 - Current branch: !`git branch --show-current`
+- Maven Spotless available: !`if [ -f "pom.xml" ] && grep -q "spotless-maven-plugin" pom.xml 2>/dev/null && command -v mvn &> /dev/null; then echo "YES"; else echo "NO"; fi`
 
 ## Your task
 
@@ -56,6 +57,40 @@ color: green
    - 如果未提供参数：继续自动生成流程
 
 2. **检查暂存区**：确认有暂存的变更，否则提示先 `git add`
+
+2.5. **Maven Spotless 代码格式化（条件执行）**：
+
+   **仅在满足以下所有条件时执行**：
+   - Context 中 `Maven Spotless available` 为 `YES`
+   - 即：项目根目录存在 `pom.xml`
+   - 且 `pom.xml` 配置了 `spotless-maven-plugin`
+   - 且系统中 `mvn` 命令可用
+
+   **执行操作**：
+
+   1. 通知用户开始格式化：
+      ```
+      🔧 代码格式化：检测到 Maven Spotless，正在格式化代码...
+      ```
+
+   2. 执行格式化命令：
+      ```bash
+      mvn spotless:apply
+      ```
+
+   3. 检查执行结果：
+      - 如果成功：重新暂存修改的文件 `git add -u`
+      - 如果失败：使用 `AskQuestion` 询问用户是否继续提交
+
+   4. 通知完成：
+      ```
+      ✅ 格式化完成：代码已格式化并重新暂存
+      ```
+
+   **注意事项**：
+   - 格式化可能修改暂存的文件，会自动重新 `git add -u`
+   - 如果格式化耗时较长，会显示进度提示
+   - 如果项目未配置 Spotless，此步骤自动跳过
 
 3. **如果是自动生成模式，分析变更推断 type**：
    - 新增文件/功能 → `feat`
@@ -177,6 +212,39 @@ feat(plugin): 添加 Git 智能提交命令
 2. 查看详细错误：git status
 3. 如果是 hook 失败，检查 .git/hooks/
 ```
+
+### 错误3.5：Spotless 格式化失败
+
+当 `mvn spotless:apply` 执行失败时，使用 `AskQuestion` 工具询问用户：
+
+```
+⚠️ Spotless 格式化失败
+
+错误信息：{maven 错误信息}
+
+可能原因：
+- Maven 配置错误
+- Spotless 插件配置问题
+- 代码存在无法自动修复的格式问题
+- 网络问题（下载插件失败）
+
+是否继续提交？
+```
+
+**选项**：
+- `[1] 跳过格式化，继续提交` - 忽略格式化错误，直接提交当前暂存的代码
+- `[2] 取消提交，手动修复` - 终止提交流程，让用户手动修复格式问题
+
+**处理逻辑**：
+- 选择 [1]：继续执行步骤 3（推断 type）
+- 选择 [2]：退出命令，输出建议操作：
+  ```
+  💡 建议操作：
+  1. 查看 Spotless 错误详情：mvn spotless:check
+  2. 手动修复格式问题
+  3. 或更新 Spotless 配置（pom.xml）
+  4. 修复后重新执行：/quick-commit
+  ```
 
 ### 错误4：无法推断提交类型
 
