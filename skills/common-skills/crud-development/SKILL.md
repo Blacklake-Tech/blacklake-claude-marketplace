@@ -112,7 +112,7 @@ app 类型，produce_task 表 → /app/v1/produce_task
 
 ### 4.1 生成 PO（持久化对象）
 
-**文件路径**：`dao/po/{module}/{ClassName}PO.kt`v
+**文件路径**：`dao/po/{module}/{ClassName}PO.kt`
 
 **生成规则**：
 
