@@ -1,6 +1,7 @@
 ---
 name: object-metadata
-description: 根据对象 code、对象名称、对象 id 查询对象元数据及其从对象元数据，输出格式使用标准的 JSON Schema 结构，供 AI 模型使用。
+aliases: [object, metadata]
+description: 查询对象元数据及从对象元数据（字段配置、枚举值），输出 JSON Schema 格式。用于对象结构分析、API 设计时使用。使用 exec_sql 工具执行查询。
 ---
 
 # 对象元数据查询技能
