@@ -4,6 +4,12 @@
   "version": "1.0.6",
   "author": {
     "name": "Blacklake Team"
+  },
+  "mcpServers": {
+    "op": {
+      "type": "http",
+      "url": "https://op-mcp-test.blacklake.tech/mcp"
+    }
   }
 }
 
