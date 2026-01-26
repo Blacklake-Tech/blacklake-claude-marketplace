@@ -1,10 +1,14 @@
 ---
 name: object-metadata
 aliases: [object, metadata]
-description: 查询对象元数据及从对象元数据（字段配置、枚举值），返回平铺的字段配置数组，与接口返回格式一致。用于对象结构分析、API 设计时使用。使用 exec_sql 工具执行查询。
+description: 根据对象 code/名称/id 查询对象元数据。使用 MCP 工具 exec_sql 执行（zones 默认 ["feature"]）。
 ---
 
 # 对象元数据查询技能
+
+## 通用规范
+
+参考：[通用规范](./COMMON.md)
 
 ## 功能说明
 
@@ -15,6 +19,12 @@ description: 查询对象元数据及从对象元数据（字段配置、枚举�
 4. 输出格式与接口返回完全一致，减少前端改造成本
 
 ## 查询工作流程
+
+### 0. 获取 orgId（如需要）
+
+如果用户提供的是租户名称或 code，**推荐使用 db-user skill** 查询租户信息获取 orgId。
+
+也可参考 [通用规范](./COMMON.md#获取-orgid) 查看详细 SQL。
 
 ### 1. 确定查询目标
 
@@ -68,7 +78,6 @@ description: 查询对象元数据及从对象元数据（字段配置、枚举�
       "id": 1761632155862282,
       "orgId": 10162960,
       "relatedObjectId": 1761632155862281,
-      "relatedObjectCategory": 1,
       "fieldCode": "main_field",
       "fieldName": "主属性",
       "fieldCategory": 1,
@@ -77,54 +86,23 @@ description: 查询对象元数据及从对象元数据（字段配置、枚举�
       "fieldPermission": 6,
       "isRequired": 1,
       "isUnique": 1,
-      "isUsed": 1,
-      "isNumberRuleConfig": 1,
-      "numberRuleId": null,
       "isReferred": 0,
       "isRefer": 0,
-      "referType": null,
-      "reference": "",
-      "referenceChain": null,
-      "targetType": 0,
-      "isCustomLayout": 1,
-      "createdSup": 1,
-      "editAble": 1,
+      "isUsed": 1,
+      "isName": 1,
+      "isNumberRuleConfig": 1,
       "defaultValue": "",
       "maxLength": 255,
       "maxValue": 0,
       "decimalNumber": 0,
       "datetimeFormat": "",
-      "isName": 1,
-      "isPrime": 1,
-      "referCode": null,
-      "referName": null,
+      "reference": "",
       "childNecessary": 0,
-      "creator": null,
-      "operator": null,
-      "createdAt": 1761651457000,
-      "updatedAt": 1769053948000,
-      "choiceValues": null,
-      "extInfo": null,
-      "isCurrentTime": null,
-      "formula": null,
-      "formulaId": null,
-      "formulaType": null,
-      "formulaBlank": 0,
-      "formulaDesc": null,
-      "referenceConditions": null,
-      "isDisplayOnRelated": 0,
-      "sortSeq": 0,
-      "esField": "t1",
-      "choiceShowType": 2,
-      "hasSupportScanInput": false,
-      "numberLimitType": 1,
-      "numberLimitMin": null,
-      "numberLimitMax": null,
-      "decimalLimitMin": null,
-      "decimalLimitMax": null,
-      "integerInputMode": null,
-      "integerStepSize": null,
-      "multiShowType": 0
+      "referenceChain": null,
+      "targetType": 0,
+      "referType": null,
+      "hasSupportNumberRuleVariable": 1,
+      "choiceValues": null
     }
   ],
   "sonObjects": [
@@ -144,11 +122,20 @@ description: 查询对象元数据及从对象元数据（字段配置、枚举�
 
 ## 执行方式
 
-所有查询使用 `exec_sql` 工具执行，参数替换为实际值。
+使用 **MCP 工具 `exec_sql`**：
 
-**重要**：在执行 SQL 前，必须先打印出完整的目标 SQL 语句（用【】包起来），然后再使用 `exec_sql` 工具执行。
+```
+exec_sql(zones=["feature"], sql="完整SQL")
+```
 
-**重要**：执行 SQL 后，必须对查询结果进行结构化展示，输出上述格式的 JSON 结构，不要使用表格格式。
+**参数**：
+- `zones`：环境数组，默认 `["feature"]`
+- `sql`：只读查询
+
+**流程**：
+1. 打印 SQL：【SELECT * FROM ...】
+2. 调用 exec_sql
+3. JSON 输出
 
 ## 查询模板
 
@@ -191,14 +178,13 @@ LIMIT 1;
 
 ### 2. 查询对象字段元数据（custom_field）
 
-查询指定对象的所有字段定义，**必须查询所有字段以保证与接口返回一致**：
+查询指定对象的所有字段定义，**只查询核心字段**：
 
 ```sql
 SELECT 
     c.id,
     c.org_id as orgId,
     c.related_object_id as relatedObjectId,
-    c.related_object_category as relatedObjectCategory,
     c.field_code as fieldCode,
     c.field_name as fieldName,
     c.field_category as fieldCategory,
@@ -207,58 +193,27 @@ SELECT
     c.field_permission as fieldPermission,
     c.is_required as isRequired,
     c.is_unique as isUnique,
-    c.is_used as isUsed,
-    c.is_number_rule_config as isNumberRuleConfig,
-    c.number_rule_id as numberRuleId,
     c.is_referred as isReferred,
     c.is_refer as isRefer,
-    c.refer_type as referType,
-    c.reference,
-    c.reference_chain as referenceChain,
-    c.target_type as targetType,
-    c.is_custom_layout as isCustomLayout,
-    c.created_sup as createdSup,
-    c.edit_able as editAble,
+    c.is_used as isUsed,
+    c.is_name as isName,
+    c.is_number_rule_config as isNumberRuleConfig,
     c.default_value as defaultValue,
     c.max_length as maxLength,
     c.max_value as maxValue,
     c.decimal_number as decimalNumber,
     c.datetime_format as datetimeFormat,
-    c.is_name as isName,
-    c.is_prime as isPrime,
-    c.refer_code as referCode,
-    c.refer_name as referName,
+    c.reference,
     c.child_necessary as childNecessary,
-    c.creator,
-    c.operator,
-    c.created_at as createdAt,
-    c.updated_at as updatedAt,
-    c.ext_info as extInfo,
-    c.is_current_time as isCurrentTime,
-    c.formula,
-    c.formula_id as formulaId,
-    c.formula_type as formulaType,
-    c.formula_blank as formulaBlank,
-    c.formula_desc as formulaDesc,
-    c.reference_conditions as referenceConditions,
-    c.is_display_on_related as isDisplayOnRelated,
-    c.sort_seq as sortSeq,
-    c.es_field as esField,
-    c.choice_show_type as choiceShowType,
-    c.has_support_scan_input as hasSupportScanInput,
-    c.number_limit_type as numberLimitType,
-    c.number_limit_min as numberLimitMin,
-    c.number_limit_max as numberLimitMax,
-    c.decimal_limit_min as decimalLimitMin,
-    c.decimal_limit_max as decimalLimitMax,
-    c.integer_input_mode as integerInputMode,
-    c.integer_step_size as integerStepSize,
-    c.multi_show_type as multiShowType
+    c.reference_chain as referenceChain,
+    c.target_type as targetType,
+    c.refer_type as referType,
+    c.has_support_number_rule_variable as hasSupportNumberRuleVariable
 FROM v3_metadata.custom_field c
 WHERE (c.org_id = -1 OR c.org_id = {orgId})
   AND c.related_object_id = {objectId}
   AND c.deleted_at = 0
-ORDER BY c.sort_seq ASC, c.id ASC;
+ORDER BY c.id ASC;
 ```
 
 **参数说明**：
@@ -269,7 +224,8 @@ ORDER BY c.sort_seq ASC, c.id ASC;
 - 查询结果直接作为 `fields` 数组返回，保持所有字段原样
 - 数值字段（如 `isRequired`, `isUnique`）保持 0/1 值，**不转换为 boolean**
 - `null` 值保留为 `null`
-- 按 `sortSeq` 和 `id` 排序，保证字段顺序
+- 按 `id` 排序，保证字段顺序
+- 只查询核心字段，省略了扩展字段（如 formula、extInfo、sortSeq 等）
 
 **返回字段说明**：参考 [字段配置通用说明](./reference/field-config-reference.md)
 
@@ -400,7 +356,6 @@ WHERE cf.field_type = 13
       "id": 1761632155862282,
       "orgId": 10162960,
       "relatedObjectId": 1761632155862281,
-      "relatedObjectCategory": 1,
       "fieldCode": "main_field",
       "fieldName": "主属性",
       "fieldCategory": 1,
@@ -409,60 +364,28 @@ WHERE cf.field_type = 13
       "fieldPermission": 6,
       "isRequired": 1,
       "isUnique": 1,
-      "isUsed": 1,
-      "isNumberRuleConfig": 1,
-      "numberRuleId": null,
       "isReferred": 0,
       "isRefer": 0,
-      "referType": null,
-      "reference": "",
-      "referenceChain": null,
-      "targetType": 0,
-      "isCustomLayout": 1,
-      "createdSup": 1,
-      "editAble": 1,
+      "isUsed": 1,
+      "isName": 1,
+      "isNumberRuleConfig": 1,
       "defaultValue": "",
       "maxLength": 255,
       "maxValue": 0,
       "decimalNumber": 0,
       "datetimeFormat": "",
-      "isName": 1,
-      "isPrime": 1,
-      "referCode": null,
-      "referName": null,
+      "reference": "",
       "childNecessary": 0,
-      "creator": null,
-      "operator": null,
-      "createdAt": 1761651457000,
-      "updatedAt": 1769053948000,
-      "choiceValues": null,
-      "extInfo": null,
-      "isCurrentTime": null,
-      "formula": null,
-      "formulaId": null,
-      "formulaType": null,
-      "formulaBlank": 0,
-      "formulaDesc": null,
-      "referenceConditions": null,
-      "isDisplayOnRelated": 0,
-      "sortSeq": 0,
-      "esField": "t1",
-      "choiceShowType": 2,
-      "hasSupportScanInput": false,
-      "numberLimitType": 1,
-      "numberLimitMin": null,
-      "numberLimitMax": null,
-      "decimalLimitMin": null,
-      "decimalLimitMax": null,
-      "integerInputMode": null,
-      "integerStepSize": null,
-      "multiShowType": 0
+      "referenceChain": null,
+      "targetType": 0,
+      "referType": null,
+      "hasSupportNumberRuleVariable": 1,
+      "choiceValues": null
     },
     {
       "id": 1761632155862392,
       "orgId": 10162960,
       "relatedObjectId": 1761632155862281,
-      "relatedObjectCategory": 1,
       "fieldCode": "cust_field4__c",
       "fieldName": "日期",
       "fieldCategory": 1,
@@ -471,54 +394,23 @@ WHERE cf.field_type = 13
       "fieldPermission": 6,
       "isRequired": 0,
       "isUnique": 0,
-      "isUsed": 1,
-      "isNumberRuleConfig": 0,
-      "numberRuleId": null,
       "isReferred": 0,
       "isRefer": 0,
-      "referType": 0,
-      "reference": "",
-      "referenceChain": null,
-      "targetType": 0,
-      "isCustomLayout": 1,
-      "createdSup": 1,
-      "editAble": 1,
+      "isUsed": 1,
+      "isName": 0,
+      "isNumberRuleConfig": 0,
       "defaultValue": "",
       "maxLength": 0,
       "maxValue": 0,
       "decimalNumber": 0,
       "datetimeFormat": "YYYY/MM/DD HH:mm:ss",
-      "isName": 0,
-      "isPrime": 0,
-      "referCode": null,
-      "referName": null,
+      "reference": "",
       "childNecessary": 0,
-      "creator": null,
-      "operator": null,
-      "createdAt": 1761651480000,
-      "updatedAt": 1769053948000,
-      "choiceValues": null,
-      "extInfo": null,
-      "isCurrentTime": 0,
-      "formula": null,
-      "formulaId": null,
-      "formulaType": null,
-      "formulaBlank": 0,
-      "formulaDesc": null,
-      "referenceConditions": null,
-      "isDisplayOnRelated": 0,
-      "sortSeq": 1,
-      "esField": "l4",
-      "choiceShowType": 2,
-      "hasSupportScanInput": false,
-      "numberLimitType": 1,
-      "numberLimitMin": null,
-      "numberLimitMax": null,
-      "decimalLimitMin": null,
-      "decimalLimitMax": null,
-      "integerInputMode": null,
-      "integerStepSize": null,
-      "multiShowType": 0
+      "referenceChain": null,
+      "targetType": 0,
+      "referType": 0,
+      "hasSupportNumberRuleVariable": 0,
+      "choiceValues": null
     }
   ],
   "sonObjects": [
@@ -542,8 +434,8 @@ WHERE cf.field_type = 13
           "relatedObjectId": 1761632155862999,
           "fieldCode": "son_field",
           "fieldName": "从对象字段",
-          "fieldType": 1,
-          /* ... 其他字段 */
+          "fieldType": 1
+          /* ... 其他核心字段 */
         }
       ]
     }
@@ -636,7 +528,6 @@ WHERE cf.field_type = 13
       "id": 1234567890123457,
       "orgId": 10162960,
       "relatedObjectId": 1234567890123456,
-      "relatedObjectCategory": 2,
       "fieldCode": "name",
       "fieldName": "用户名",
       "fieldCategory": 2,
@@ -645,54 +536,23 @@ WHERE cf.field_type = 13
       "fieldPermission": 6,
       "isRequired": 1,
       "isUnique": 1,
-      "isUsed": 1,
-      "isNumberRuleConfig": 0,
-      "numberRuleId": null,
       "isReferred": 0,
       "isRefer": 0,
-      "referType": null,
-      "reference": "",
-      "referenceChain": null,
-      "targetType": 0,
-      "isCustomLayout": 1,
-      "createdSup": 1,
-      "editAble": 1,
+      "isUsed": 1,
+      "isName": 1,
+      "isNumberRuleConfig": 0,
       "defaultValue": "",
       "maxLength": 50,
       "maxValue": 0,
       "decimalNumber": 0,
       "datetimeFormat": "",
-      "isName": 1,
-      "isPrime": 1,
-      "referCode": null,
-      "referName": null,
+      "reference": "",
       "childNecessary": 0,
-      "creator": null,
-      "operator": null,
-      "createdAt": 1761651457000,
-      "updatedAt": 1769053948000,
-      "choiceValues": null,
-      "extInfo": null,
-      "isCurrentTime": null,
-      "formula": null,
-      "formulaId": null,
-      "formulaType": null,
-      "formulaBlank": 0,
-      "formulaDesc": null,
-      "referenceConditions": null,
-      "isDisplayOnRelated": 0,
-      "sortSeq": 0,
-      "esField": "t1",
-      "choiceShowType": 2,
-      "hasSupportScanInput": false,
-      "numberLimitType": 1,
-      "numberLimitMin": null,
-      "numberLimitMax": null,
-      "decimalLimitMin": null,
-      "decimalLimitMax": null,
-      "integerInputMode": null,
-      "integerStepSize": null,
-      "multiShowType": 0
+      "referenceChain": null,
+      "targetType": 0,
+      "referType": null,
+      "hasSupportNumberRuleVariable": 0,
+      "choiceValues": null
     }
   ],
   "sonObjects": []
@@ -723,13 +583,12 @@ WHERE cf.field_type = 13
       "id": 1234567890123461,
       "orgId": 10162960,
       "relatedObjectId": 1234567890123460,
-      "relatedObjectCategory": 1,
       "fieldCode": "order_no",
       "fieldName": "订单号",
       "fieldType": 1,
       "isRequired": 1,
-      "isUnique": 1,
-      /* ... 其他字段 */
+      "isUnique": 1
+      /* ... 其他核心字段 */
     }
   ],
   "sonObjects": [
@@ -753,8 +612,8 @@ WHERE cf.field_type = 13
           "relatedObjectId": 1234567890123470,
           "fieldCode": "product_name",
           "fieldName": "产品名称",
-          "fieldType": 1,
-          /* ... 其他字段 */
+          "fieldType": 1
+          /* ... 其他核心字段 */
         }
       ]
     }
@@ -764,17 +623,24 @@ WHERE cf.field_type = 13
 
 ## 注意事项
 
-1. **参数替换**：所有模板中的 `{参数名}` 都需要替换为实际值
-2. **删除标记**：所有查询都包含 `deleted_at = 0` 条件
-3. **执行方式**：必须通过 MCP 工具 `exec_sql` 执行
-4. **输出格式**：必须输出上述 JSON 格式，不要使用表格
-5. **数据类型**：保持原始数据类型，不转换 0/1 为 boolean
-6. **从对象查询**：如果对象有从对象，必须递归查询所有从对象的元数据
-7. **枚举值查询**：对于单选（field_type=4）和多选（field_type=5）字段，必须查询 `choice_value` 表获取枚举选项
-8. **字段完整性**：必须包含所有字段，即使值为 `null` 或空字符串
-9. **org_id 处理**：查询时需要考虑预置对象（org_id=-1）和自定义对象（org_id=具体值）
-10. **字段排序**：字段按 `sortSeq` 和 `id` 排序
-11. **命名规范**：使用 `sonObjects` 而非 `subObjects`，符合业务习惯
+**工具调用**：
+1. exec_sql 是 MCP 工具，zones 默认 `["feature"]`
+2. 如用户给的是租户名称/code，可用 db-user skill 获取 orgId
+3. 执行前打印 SQL（用【】）
+
+**SQL**：
+4. `{参数}` 必须替换实际值
+5. 必含 `deleted_at = 0`
+6. org_id：`(org_id = -1 OR org_id = {orgId})`
+
+**输出**：
+7. JSON 格式，snake_case → camelCase
+8. 0/1 不转 boolean
+
+**业务**：
+9. 从对象递归查询（模板 4-5）
+10. 单选/多选（type=4/5）查枚举值（模板 3）
+11. 字段按 id 排序
 
 ## 参考文档
 
