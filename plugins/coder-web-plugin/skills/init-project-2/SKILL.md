@@ -1,5 +1,5 @@
 ---
-name: init-project
+name: init-project-2
 aliases: [scaffold, create-app]
 description: 根据模板初始化前端项目。支持自定义对象页面，后续扩展支持工单、物料、仓储等。用户提供租户信息和对象信息，自动生成完整的 CRUD 应用。
 disable-model-invocation: true
@@ -90,7 +90,7 @@ argument-hint: [project-type] [tenant-info] [object-info]
 
 | 项目类型 | 模板路径 |
 |---------|---------|
-| `custom-object` | `demos/custom-object/` |
+| `custom-object` | `./demos/custom-object/` |
 
 **复制操作**：
 1. 确定目标目录（通常是当前工作目录或用户指定的目录）
@@ -99,7 +99,7 @@ argument-hint: [project-type] [tenant-info] [object-info]
 
 **示例命令**：
 ```bash
-cp -r skills/init-project/demos/custom-object/* ./target-directory/
+cp -r ./demos/custom-object/* ./target-directory/
 ```
 
 ### 步骤 5：转换并替换 Metadata.ts
@@ -359,7 +359,7 @@ export let mockSubObjects: SubObjectDTO[] = [
    - 从对象的字段也需要完整转换
 
 4. **文件路径**：
-   - 模板路径：`skills/init-project/demos/{project-type}/`
+   - 模板路径：`./demos/{project-type}/`
    - 目标路径：用户指定或当前工作目录
 
 5. **命名规范**：

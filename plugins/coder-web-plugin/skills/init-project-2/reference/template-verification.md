@@ -4,7 +4,7 @@
 2026-01-26
 
 ## 模板路径
-`skills/init-project/demos/custom-object/`
+`./demos/custom-object/`
 
 ## 验证结果
 
@@ -86,10 +86,10 @@ custom-object/
 
 ```bash
 # 方式1：复制整个目录
-cp -r skills/init-project/demos/custom-object/* ./target-directory/
+cp -r ./demos/custom-object/* ./target-directory/
 
 # 方式2：使用 rsync（保留权限）
-rsync -av skills/init-project/demos/custom-object/ ./target-directory/
+rsync -av ./demos/custom-object/ ./target-directory/
 ```
 
 ### ✅ 文件完整性检查
