@@ -13,6 +13,9 @@ color: green
 - Staged diff details: !`git diff --cached`
 - Current branch: !`git branch --show-current`
 - Maven Spotless available: !`if [ -f "pom.xml" ] && grep -q "spotless-maven-plugin" pom.xml 2>/dev/null && command -v mvn &> /dev/null; then echo "YES"; else echo "NO"; fi`
+- Remote repositories: !`git remote -v`
+- Remote count: !`git remote | wc -l | tr -d ' '`
+- Current branch upstream: !`git rev-parse --abbrev-ref --symbolic-full-name @{u} 2>/dev/null || echo "未设置"`
 
 ## Your task
 
@@ -128,6 +131,96 @@ color: green
 
 7. **提交并输出结果**
 
+8. **询问是否推送到远程**：
+   - 提交成功后,使用 AskQuestion 询问用户是否推送到远程
+   - 默认选项: "稍后手动推送"(更安全)
+   - 根据 Context 中的 Remote count 智能处理:
+     - 0 个远程: 提示未配置远程仓库
+     - 1 个远程: 直接推送到该远程
+     - 多个远程: 让用户选择推送目标
+
+### 推送流程
+
+提交成功后,使用 AskQuestion 询问用户是否推送:
+
+**询问界面**:
+```
+✅ 提交成功
+
+提交信息: {commit_message}
+提交哈希: {commit_hash}
+
+是否推送到远程仓库?
+```
+
+**选项**:
+- `推送到远程` - 立即推送提交
+- `稍后手动推送 (推荐)` - 跳过推送,手动执行
+
+**处理逻辑**:
+
+**选择"推送到远程"时**:
+
+1. **检查远程仓库数量** (从 Context 的 Remote count):
+
+   **情况 A: 0 个远程**
+   ```
+   ⚠️ 未配置远程仓库
+
+   当前仓库没有配置远程仓库。
+
+   添加远程仓库:
+   git remote add origin <url>
+
+   然后执行推送:
+   git push -u origin {branch}
+   ```
+   退出流程
+
+   **情况 B: 1 个远程**
+   - 获取远程名称: `git remote`
+   - 获取当前分支: `git branch --show-current`
+   - 检查是否已设置上游分支 (从 Context 的 Current branch upstream)
+   - 如果上游为"未设置": 执行 `git push -u {remote} {branch}`
+   - 如果已设置上游: 执行 `git push`
+   - 输出推送结果:
+     ```
+     🚀 推送成功
+
+     远程仓库: {remote}
+     分支: {branch}
+     提交哈希: {commit_hash}
+     ```
+
+   **情况 C: 多个远程**
+   - 列出所有远程 (从 Context 的 Remote repositories)
+   - 使用 AskQuestion 让用户选择推送目标
+   - 询问界面:
+     ```
+     检测到多个远程仓库:
+
+     {列出远程名称和 URL}
+
+     请选择推送目标:
+     ```
+   - 选项: 为每个远程生成一个选项,如:
+     - `origin (https://github.com/user/repo.git)`
+     - `upstream (https://github.com/org/repo.git)`
+   - 用户选择后:
+     - 检查是否已设置上游分支
+     - 如果上游为"未设置": 执行 `git push -u {选择的remote} {branch}`
+     - 如果已设置上游: 执行 `git push {选择的remote} {branch}`
+   - 输出推送结果
+
+**选择"稍后手动推送"时**:
+```
+💡 提示: 提交已保存到本地仓库
+
+手动推送命令:
+git push
+```
+退出流程
+
 ### 使用示例
 
 ```bash
@@ -157,10 +250,10 @@ feat(plugin): 添加 Git 智能提交命令
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-下一步操作：
-- 推送到远程：git push
-- 查看提交：git show abc1234
+💡 提示: 提交已保存到本地仓库
 ```
+
+**注意**: 提交完成后会自动询问是否推送到远程,详见"推送流程"章节。
 
 ## 【错误处理】
 
@@ -296,6 +389,36 @@ feat(plugin): 添加 Git 智能提交命令
 - 文档更新用 docs
 - 其他更改用 chore
 ```
+
+### 错误5：推送失败
+
+当 `git push` 执行失败时：
+
+```
+❌ 推送失败
+
+错误信息：{git 错误信息}
+
+可能原因：
+- 远程分支有新提交（需要先 pull）
+- 没有推送权限（检查 SSH 密钥或访问令牌）
+- 网络连接问题
+- 分支保护规则限制
+- 远程仓库不存在或 URL 错误
+
+建议操作：
+1. 检查远程状态：git fetch
+2. 合并远程更改：git pull --rebase
+3. 再次推送：git push
+4. 检查权限：git remote -v
+5. 查看详细错误：git push -v
+```
+
+**常见场景处理**：
+
+- **需要 pull**: 执行 `git pull --rebase` 后重新推送
+- **权限问题**: 检查 SSH 密钥或 HTTPS 凭据配置
+- **强制推送**: ⚠️ 仅在确认安全时使用 `git push --force-with-lease`
 
 ## 【高级功能】
 
