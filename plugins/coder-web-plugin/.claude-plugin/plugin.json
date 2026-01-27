@@ -1,7 +1,7 @@
 {
   "name": "coder-web-plugin",
   "description": "Web development plugin with frontend agents and metadata skills",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "author": {
     "name": "Blacklake Team"
   },
