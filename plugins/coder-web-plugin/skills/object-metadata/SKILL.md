@@ -181,7 +181,7 @@ LIMIT 1;
 查询指定对象的所有字段定义，**只查询核心字段**：
 
 ```sql
-SELECT 
+SELECT
     c.id,
     c.org_id as orgId,
     c.related_object_id as relatedObjectId,
@@ -200,7 +200,7 @@ SELECT
     c.is_number_rule_config as isNumberRuleConfig,
     c.default_value as defaultValue,
     c.max_length as maxLength,
-    c.max_value as maxValue,
+    c.`max_value` as maxValue,
     c.decimal_number as decimalNumber,
     c.datetime_format as datetimeFormat,
     c.reference,
@@ -632,6 +632,7 @@ WHERE cf.field_type = 13
 4. `{参数}` 必须替换实际值
 5. 必含 `deleted_at = 0`
 6. org_id：`(org_id = -1 OR org_id = {orgId})`
+7. MySQL 保留字（如 `max_value`）使用反引号包裹：c.`max_value` as maxValue
 
 **输出**：
 7. JSON 格式，snake_case → camelCase
