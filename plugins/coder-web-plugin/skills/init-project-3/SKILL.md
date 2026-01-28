@@ -81,14 +81,15 @@ bash scripts/init-from-github.sh \
    写入 <target-dir>/src/Metadata.ts
    ```
 
-### 阶段 5: 安装依赖（可选）
+### 阶段 5: 安装依赖并启动
 
 ```bash
 cd <target-dir>
-npm install
+npm install --legacy-peer-deps
+npm run dev
 ```
 
-如果用户需要，执行依赖安装。
+
 
 ### 阶段 6: 输出成功信息
 
@@ -100,10 +101,7 @@ npm install
 🎯 对象代码: <object-code>
 📊 字段数量: <count>
 
-🚀 下一步:
-cd <target-dir>
-npm install  # 如果未安装
-npm run dev
+
 ```
 
 ## 关键点
