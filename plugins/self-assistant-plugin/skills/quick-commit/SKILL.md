@@ -1,8 +1,8 @@
 ---
 name: quick-commit
-description: 智能生成符合 Conventional Commits 规范的提交信息并提交。根据暂存区变更自动推断 type、scope 和 subject，或使用自定义消息（带格式验证）。使用场景：(1) 快速提交符合规范的代码，(2) 自动生成提交消息节省时间，(3) 确保提交格式一致性，(4) 学习项目提交风格。
+description: 智能生成符合 Conventional Commits 规范的提交信息并提交。自动推断 type、scope 和 subject，或使用自定义消息（带格式验证）。支持版本号自动升级、Maven Spotless 代码格式化、自动推送到远程。使用时机：(1) 需要快速提交代码，(2) 需要符合规范的提交消息，(3) 需要同时升级版本号并提交，(4) 需要格式化后提交，(5) 需要提交后推送或合并到 feature 分支。触发词：quick-commit、快速提交、升级版本后提交、格式化后提交。
 argument-hint: [optional custom message]
-allowed-tools: Bash(git *), AskQuestion
+allowed-tools: Bash(git *), AskQuestion, Edit
 model: haiku
 color: green
 hooks:
@@ -10,20 +10,20 @@ hooks:
     - matcher: "*"
       hooks:
         - type: command
-          command: "./check-spotless.sh"
+          command: "./scripts/check-spotless.sh"
           timeout: 120
           statusMessage: "检测并执行 Spotless 格式化..."
   Stop:
     - matcher: "*"
       hooks:
         - type: command
-          command: "./quick-commit-done.sh"
+          command: "./scripts/quick-commit-done.sh"
           statusMessage: "测试相对路径方式1..."
         - type: command
-          command: "${CLAUDE_PLUGIN_ROOT}/skills/quick-commit/quick-commit-done2.sh"
+          command: "${CLAUDE_PLUGIN_ROOT}/skills/quick-commit/scripts/quick-commit-done2.sh"
           statusMessage: "测试环境变量路径方式..."
         - type: command
-          command: "./quick-commit-done2.sh"
+          command: "./scripts/quick-commit-done2.sh"
           statusMessage: "测试相对路径方式2..."
 ---
 
@@ -40,6 +40,7 @@ hooks:
 - Remote repositories: !`git remote -v`
 - Remote count: !`git remote | wc -l | tr -d ' '`
 - Current branch upstream: !`git rev-parse --abbrev-ref --symbolic-full-name @{u} 2>/dev/null || echo "未设置"`
+- Version files: !`find . -maxdepth 3 \( -name "package.json" -o -name "pom.xml" -o -name "pyproject.toml" -o -name "plugin.json" -o -name "Cargo.toml" -o -name "VERSION" \) 2>/dev/null | head -5`
 
 ## Your task
 
@@ -96,6 +97,40 @@ hooks:
      - 不符合则提示用户修正并退出
    - 如果未提供参数：继续自动生成流程
 
+1.5. **版本号升级（条件执行）**：
+
+   **触发条件**：用户明确要求更新版本号，包含以下关键词：
+   - "升级版本" / "更新版本" / "版本升级"
+   - "bump version" / "update version"
+   - "发版" / "release"
+
+   **执行流程**：
+
+   1. **检测版本文件**：
+      - 从 Context 的 `Version files` 获取文件列表
+      - 如果没有检测到任何版本文件，提示用户并跳过此步骤
+
+   2. **读取并升级版本号**：
+      - 读取文件内容，提取当前版本号（格式：x.y.z）
+      - **默认升级规则**：升级最低位 z，即 `x.y.z → x.y.(z+1)`
+      - 使用 `Edit` 工具更新文件中的版本号
+      - 输出提示：`📦 版本升级：{old_version} → {new_version}`
+
+   3. **暂存版本文件**：
+      - 执行 `git add <version_file>`
+      - 继续正常的提交流程
+
+   **支持的文件格式**：
+   - `package.json` / `plugin.json`：`"version": "x.y.z"`
+   - `pom.xml`：`<version>x.y.z</version>`（仅修改第一个 version 标签）
+   - `pyproject.toml` / `Cargo.toml`：`version = "x.y.z"`
+   - `VERSION`：纯文本 `x.y.z`
+
+   **注意事项**：
+   - 如果检测到多个版本文件，优先处理 `package.json` 或 `plugin.json`
+   - 版本号必须是标准的三位格式 `x.y.z`
+   - 升级后自动暂存，无需用户手动 `git add`
+
 2. **检查并自动暂存变更**：
    - 检查是否有任何未提交的变更（暂存区 + 工作区）
    - 如果暂存区和工作区都为空：提示"无变更需要提交"并退出
@@ -143,22 +178,17 @@ hooks:
    - 新增文件/功能 → `feat`
    - 关键词（fix/bug/修复）→ `fix`
    - 重构/重命名 → `refactor`
-   - 文档文件（.md/README）→ `docs`
-   - 测试文件 → `test`
-   - 依赖文件（package.json）→ `build`
-   - CI 配置 → `ci`
-   - 子模块/.gitmodules → `chore(submodule)`
-   - 配置文件 → `chore`
+   - 文档/测试/依赖/CI → 对应 type
+   - 详细规则见 [references/commit-types.md](references/commit-types.md)
 
 4. **如果是自动生成模式，推断 scope**：从文件路径提取模块名（api/ui/plugin/config 等）
 
 5. **如果是自动生成模式，生成 subject**：
-   - 祈使语气、不超过 50 字符
-   - 首字母小写（英文）
-   - 无句号
+   - 祈使语气、不超过 50 字符、首字母小写（英文）、无句号
    - 中文优先（如果项目使用中文）
 
 6. **格式**：`<type>(<scope>): <subject>`
+   - 更多示例见 [references/examples.md](references/examples.md)
 
 7. **提交并输出结果**
 
@@ -271,17 +301,20 @@ git push
 ### 使用示例
 
 ```bash
-# 自动生成提交消息（处理所有未提交变更）
+# 自动生成提交消息
 /quick-commit
 
 # 使用自定义消息
 /quick-commit "feat(auth): 添加用户登录功能"
-/quick-commit "fix(api): 修复空指针异常"
 
-# 提交后合并到 feature 分支
-/quick-commit "feat(ui): 添加新组件" 合并到 feature
+# 升级版本后提交
+/quick-commit 升级版本
+
+# 提交后合并到 feature
 /quick-commit 合并到 feature
 ```
+
+更多示例见 [references/examples.md](references/examples.md)
 
 ### 输出格式
 
@@ -308,172 +341,52 @@ feat(plugin): 添加 Git 智能提交命令
 
 ## 【错误处理】
 
+常见错误的快速参考，完整说明见 [references/error-handling.md](references/error-handling.md)
+
 ### 错误1：无变更需要提交
 
-当暂存区和工作区都为空时：
+提示用户并退出：
 
 ```
 ℹ️ 无变更需要提交
-
-当前状态：
-- 工作区：干净
-- 暂存区：空
-
 所有文件都已提交，无需操作。
 ```
 
 ### 错误2：自定义消息格式错误
 
-```
-❌ 提交消息格式不符合 Conventional Commits 规范
+验证格式：`^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\(.+?\))?: .+`
 
-输入消息：{用户输入}
-
-正确格式：<type>(<scope>): <subject>
-
-有效的 type：
-- feat: 新功能
-- fix: Bug 修复
-- docs: 文档更新
-- style: 代码格式
-- refactor: 重构
-- perf: 性能优化
-- test: 测试相关
-- build: 构建系统或依赖
-- ci: CI 配置
-- chore: 其他更改
-
-示例：
-- feat(auth): 添加用户登录功能
-- fix(api): 修复空指针异常
-- docs: 更新 README
-```
+提示用户修正格式并退出。详见 [references/error-handling.md](references/error-handling.md)
 
 ### 错误3：提交失败
 
-```
-❌ 提交失败
+可能原因：Git 配置、文件权限、hooks 失败、仓库状态异常
 
-错误信息：{git 错误信息}
-
-可能原因：
-- Git 配置问题（用户名/邮箱未设置）
-- 文件权限问题
-- Git hooks 失败
-- 仓库状态异常
-
-建议操作：
-1. 检查 Git 配置：git config --list
-2. 查看详细错误：git status
-3. 如果是 hook 失败，检查 .git/hooks/
-```
+提供诊断命令和解决方案。详见 [references/error-handling.md](references/error-handling.md)
 
 ### 错误3.5：Spotless 格式化失败
 
-当 `mvn spotless:apply` 执行失败时，使用 `AskQuestion` 工具询问用户：
+使用 `AskQuestion` 询问用户：
+- `[1] 跳过格式化，继续提交`
+- `[2] 取消提交，手动修复`
 
-```
-⚠️ Spotless 格式化失败
-
-错误信息：{maven 错误信息}
-
-可能原因：
-- Maven 配置错误
-- Spotless 插件配置问题
-- 代码存在无法自动修复的格式问题
-- 网络问题（下载插件失败）
-
-是否继续提交？
-```
-
-**选项**：
-- `[1] 跳过格式化，继续提交` - 忽略格式化错误，直接提交当前暂存的代码
-- `[2] 取消提交，手动修复` - 终止提交流程，让用户手动修复格式问题
-
-**处理逻辑**：
-- 选择 [1]：继续执行步骤 3（推断 type）
-- 选择 [2]：退出命令，输出建议操作：
-  ```
-  💡 建议操作：
-  1. 查看 Spotless 错误详情：mvn spotless:check
-  2. 手动修复格式问题
-  3. 或更新 Spotless 配置（pom.xml）
-  4. 修复后重新执行：/quick-commit
-  ```
+详细处理逻辑见 [references/error-handling.md](references/error-handling.md)
 
 ### 错误4：无法推断提交类型
 
-```
-⚠️ 无法自动推断提交类型
-
-变更文件：
-- {文件列表}
-
-建议操作：
-1. 使用自定义消息：/quick-commit "type(scope): subject"
-2. 或手动提交：git commit -m "消息"
-
-提示：
-- 新增功能用 feat
-- 修复问题用 fix
-- 文档更新用 docs
-- 其他更改用 chore
-```
+提示使用自定义消息或手动提交。详见 [references/error-handling.md](references/error-handling.md)
 
 ### 错误5：推送失败
 
-当 `git push` 执行失败时：
+常见场景：需要 pull、权限问题、分支保护、网络问题
 
-```
-❌ 推送失败
-
-错误信息：{git 错误信息}
-
-可能原因：
-- 远程分支有新提交（需要先 pull）
-- 没有推送权限（检查 SSH 密钥或访问令牌）
-- 网络连接问题
-- 分支保护规则限制
-- 远程仓库不存在或 URL 错误
-
-建议操作：
-1. 检查远程状态：git fetch
-2. 合并远程更改：git pull --rebase
-3. 再次推送：git push
-4. 检查权限：git remote -v
-5. 查看详细错误：git push -v
-```
-
-**常见场景处理**：
-
-- **需要 pull**: 执行 `git pull --rebase` 后重新推送
-- **权限问题**: 检查 SSH 密钥或 HTTPS 凭据配置
-- **强制推送**: ⚠️ 仅在确认安全时使用 `git push --force-with-lease`
+提供详细的诊断和解决步骤。详见 [references/error-handling.md](references/error-handling.md)
 
 ### 错误6：feature 分支不存在
 
-当执行合并到 feature 时，如果 feature 分支不存在（从 Context 的 Feature branch exists 为 NO）：
+使用 AskQuestion 提供选项：创建分支、从远程拉取、取消操作
 
-```
-❌ feature 分支不存在
-
-当前仓库没有 feature 分支。
-
-建议操作：
-1. 创建 feature 分支：git checkout -b feature
-2. 或从远程拉取：git fetch origin feature:feature
-3. 或取消合并操作
-```
-
-使用 AskQuestion 工具提供选项：
-- `创建 feature 分支` - 执行 `git checkout -b feature`，然后继续合并流程
-- `从远程拉取` - 执行 `git fetch origin feature:feature`，然后继续合并流程
-- `取消操作` - 跳过合并，保持当前状态
-
-**处理逻辑**：
-- 选择"创建"或"拉取"后，重新检查 feature 分支是否存在
-- 如果仍不存在，提示错误并退出
-- 如果存在，继续执行合并流程
+详见 [references/error-handling.md](references/error-handling.md)
 
 ## 【高级功能】
 
