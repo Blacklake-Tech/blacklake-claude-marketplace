@@ -206,6 +206,8 @@ color: blue
 
 4. **验证结果**：检查所有提交是否符合规范
 
+详细的 Rebase 操作指南见 [references/rebase-guide.md](references/rebase-guide.md)
+
 5. **输出完成报告**：
 
 ```
@@ -232,29 +234,16 @@ color: blue
 - 删除备份：git branch -D back/normalize-20260112
 ```
 
-### Type 推断规则
+### Type 和 Scope 推断
 
-从 git show 的 diff 分析：
+详细的推断规则见 [../quick-commit/references/commit-types.md](../quick-commit/references/commit-types.md)
+
+**快速参考**：
 - 新增文件/功能 → `feat`
-- 关键词（fix/bug/修复/issue）→ `fix`
+- 关键词（fix/bug）→ `fix`
 - 重构/重命名 → `refactor`
-- 文档（.md/README）→ `docs`
-- 测试文件 → `test`
-- 依赖（package.json）→ `build`
-- CI 配置（.github/.gitlab-ci）→ `ci`
-- 子模块（.gitmodules）→ `chore(submodule)`
-- 配置/工具 → `chore`
-- 性能相关 → `perf`
-
-### Scope 推断规则
-
-从文件路径提取：
-- `src/api/*` → `api`
-- `src/ui/*|components/*` → `ui`
-- `plugins/*` → `plugin`
-- `*.gitmodules|submodule` → `submodule`
-- `config/*` → `config`
-- 根目录配置 → 省略 scope
+- 文档/测试/依赖/CI → 对应 type
+- Scope 从文件路径提取（api/ui/plugin/config 等）
 
 ### 注意事项
 
