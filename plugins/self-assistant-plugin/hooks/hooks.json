@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "description": "self-assistant-plugin 的 plugin 级别 hooks 配置",
+  "hooks": {
+    "Stop": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/plugin-test-hook.sh",
+            "statusMessage": "Plugin 级别 hook 测试..."
+          }
+        ],
+        "description": "测试用的 plugin 级别 hook - 在任意 skill 执行完成后打印消息"
+      }
+    ]
+  }
+}

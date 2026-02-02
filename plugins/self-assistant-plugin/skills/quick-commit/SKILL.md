@@ -1,9 +1,30 @@
 ---
+name: quick-commit
 description: 智能生成符合 Conventional Commits 规范的提交信息并提交。根据暂存区变更自动推断 type、scope 和 subject，或使用自定义消息（带格式验证）。使用场景：(1) 快速提交符合规范的代码，(2) 自动生成提交消息节省时间，(3) 确保提交格式一致性，(4) 学习项目提交风格。
 argument-hint: [optional custom message]
 allowed-tools: Bash(git *), AskQuestion
 model: haiku
 color: green
+hooks:
+  UserPromptSubmit:
+    - matcher: "*"
+      hooks:
+        - type: command
+          command: "./check-spotless.sh"
+          timeout: 120
+          statusMessage: "检测并执行 Spotless 格式化..."
+  Stop:
+    - matcher: "*"
+      hooks:
+        - type: command
+          command: "./quick-commit-done.sh"
+          statusMessage: "测试相对路径方式1..."
+        - type: command
+          command: "${CLAUDE_PLUGIN_ROOT}/skills/quick-commit/quick-commit-done2.sh"
+          statusMessage: "测试环境变量路径方式..."
+        - type: command
+          command: "./quick-commit-done2.sh"
+          statusMessage: "测试相对路径方式2..."
 ---
 
 ## Context
@@ -11,7 +32,10 @@ color: green
 - Current git status: !`git status --short`
 - Staged changes: !`git diff --cached --stat`
 - Staged diff details: !`git diff --cached`
+- Unstaged changes: !`git diff --stat`
+- Untracked files: !`git ls-files --others --exclude-standard | head -10`
 - Current branch: !`git branch --show-current`
+- Feature branch exists: !`git branch --list feature | grep -q feature && echo "YES" || echo "NO"`
 - Maven Spotless available: !`if [ -f "pom.xml" ] && grep -q "spotless-maven-plugin" pom.xml 2>/dev/null && command -v mvn &> /dev/null; then echo "YES"; else echo "NO"; fi`
 - Remote repositories: !`git remote -v`
 - Remote count: !`git remote | wc -l | tr -d ' '`
@@ -19,7 +43,14 @@ color: green
 
 ## Your task
 
-根据暂存区的变更智能生成符合 Conventional Commits 规范的提交信息并提交。
+智能处理工作区和暂存区的所有变更，生成符合 Conventional Commits 规范的提交信息并提交。
+
+## 【核心原则】
+
+1. **全面感知**：默认处理工作区和暂存区的所有未提交内容
+2. **自动暂存**：如果有任何未暂存的变更，自动执行 `git add .`
+3. **主动推送**：提交成功后主动询问是否推送到远程
+4. **可选合并**：支持提交后合并到 feature 分支（需明确指定）
 
 ## 【进度通知规范】
 
@@ -65,14 +96,14 @@ color: green
      - 不符合则提示用户修正并退出
    - 如果未提供参数：继续自动生成流程
 
-2. **检查暂存区**：
-   - 如果暂存区有变更：继续步骤 2.5
-   - 如果暂存区为空：
-     - 检查工作区是否有未暂存的变更
-     - 如果工作区也为空：提示"无变更需要提交"并退出
-     - 如果工作区有变更：使用 `AskQuestion` 询问用户是否自动暂存
-       - 选择"是"：执行 `git add -u`（暂存已跟踪文件的修改）或 `git add .`（暂存所有变更），然后继续
-       - 选择"否"：提示手动 `git add` 并退出
+2. **检查并自动暂存变更**：
+   - 检查是否有任何未提交的变更（暂存区 + 工作区）
+   - 如果暂存区和工作区都为空：提示"无变更需要提交"并退出
+   - 如果有任何未暂存的变更（工作区有变更或未跟踪文件）：
+     - 输出进度提示：`📦 正在暂存所有变更...`
+     - 自动执行 `git add .`（暂存所有变更，包括新文件）
+     - 输出完成提示：`✅ 已暂存 {文件数} 个文件`
+   - 继续步骤 2.5
 
 2.5. **Maven Spotless 代码格式化（条件执行）**：
 
@@ -132,12 +163,28 @@ color: green
 7. **提交并输出结果**
 
 8. **询问是否推送到远程**：
-   - 提交成功后,使用 AskQuestion 询问用户是否推送到远程
-   - 默认选项: "稍后手动推送"(更安全)
+   - 提交成功后,使用 AskQuestion 主动询问用户是否推送到远程
    - 根据 Context 中的 Remote count 智能处理:
      - 0 个远程: 提示未配置远程仓库
      - 1 个远程: 直接推送到该远程
      - 多个远程: 让用户选择推送目标
+
+9. **合并到 feature 分支（可选）**：
+   - **触发条件**：仅在用户明确提到以下关键词时执行
+     - "合并到 feature"
+     - "merge to feature"
+     - "合并 feature"
+     - "merge feature"
+   - **执行流程**：
+     1. 检查 feature 分支是否存在（从 Context 的 Feature branch exists）
+     2. 如果不存在，跳到【错误处理】的"错误6"
+     3. 保存当前分支名：`current_branch=$(git branch --show-current)`
+     4. 输出进度：`🔀 正在合并到 feature 分支...`
+     5. 切换到 feature：`git checkout feature`
+     6. 合并当前分支：`git merge $current_branch --no-ff -m "merge: 合并 $current_branch 到 feature"`
+     7. 使用 AskQuestion 询问是否推送 feature 分支
+     8. 切回原分支：`git checkout $current_branch`
+     9. 输出完成提示：`✅ 已合并到 feature 分支`
 
 ### 推送流程
 
@@ -155,7 +202,7 @@ color: green
 
 **选项**:
 - `推送到远程` - 立即推送提交
-- `稍后手动推送 (推荐)` - 跳过推送,手动执行
+- `稍后手动推送` - 跳过推送,手动执行
 
 **处理逻辑**:
 
@@ -224,12 +271,16 @@ git push
 ### 使用示例
 
 ```bash
-# 自动生成提交消息
+# 自动生成提交消息（处理所有未提交变更）
 /quick-commit
 
 # 使用自定义消息
 /quick-commit "feat(auth): 添加用户登录功能"
 /quick-commit "fix(api): 修复空指针异常"
+
+# 提交后合并到 feature 分支
+/quick-commit "feat(ui): 添加新组件" 合并到 feature
+/quick-commit 合并到 feature
 ```
 
 ### 输出格式
@@ -257,31 +308,10 @@ feat(plugin): 添加 Git 智能提交命令
 
 ## 【错误处理】
 
-### 错误1：暂存区为空（自动处理）
+### 错误1：无变更需要提交
 
-当暂存区为空时，**自动检查工作区并询问用户**：
+当暂存区和工作区都为空时：
 
-**询问提示**：
-```
-⚠️ 暂存区为空
-
-检测到以下未暂存的变更：
-{列出修改的文件及简要说明}
-
-是否自动暂存这些变更？
-```
-
-**选项**：
-- `[1] 暂存已跟踪文件的修改 (git add -u)` - 仅暂存已在 Git 中的文件
-- `[2] 暂存所有变更 (git add .)` - 暂存所有文件（包括新文件）
-- `[3] 手动选择，稍后提交` - 取消操作，让用户手动 git add
-
-**处理逻辑**：
-- 选择 [1]：执行 `git add -u`，继续提交流程
-- 选择 [2]：执行 `git add .`，继续提交流程
-- 选择 [3]：退出命令，输出手动操作指引
-
-**如果工作区也为空**：
 ```
 ℹ️ 无变更需要提交
 
@@ -419,6 +449,31 @@ feat(plugin): 添加 Git 智能提交命令
 - **需要 pull**: 执行 `git pull --rebase` 后重新推送
 - **权限问题**: 检查 SSH 密钥或 HTTPS 凭据配置
 - **强制推送**: ⚠️ 仅在确认安全时使用 `git push --force-with-lease`
+
+### 错误6：feature 分支不存在
+
+当执行合并到 feature 时，如果 feature 分支不存在（从 Context 的 Feature branch exists 为 NO）：
+
+```
+❌ feature 分支不存在
+
+当前仓库没有 feature 分支。
+
+建议操作：
+1. 创建 feature 分支：git checkout -b feature
+2. 或从远程拉取：git fetch origin feature:feature
+3. 或取消合并操作
+```
+
+使用 AskQuestion 工具提供选项：
+- `创建 feature 分支` - 执行 `git checkout -b feature`，然后继续合并流程
+- `从远程拉取` - 执行 `git fetch origin feature:feature`，然后继续合并流程
+- `取消操作` - 跳过合并，保持当前状态
+
+**处理逻辑**：
+- 选择"创建"或"拉取"后，重新检查 feature 分支是否存在
+- 如果仍不存在，提示错误并退出
+- 如果存在，继续执行合并流程
 
 ## 【高级功能】
 
