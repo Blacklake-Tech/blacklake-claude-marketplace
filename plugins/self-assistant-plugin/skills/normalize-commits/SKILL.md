@@ -1,5 +1,6 @@
 ---
-description: 规范化 Git 提交历史，分析并清理最近的提交，合并重复提交并改写不规范提交为 Conventional Commits 格式。使用场景：(1) 提交历史混乱需要整理，(2) 存在大量重复或无意义提交，(3) 提交消息不符合规范，(4) PR 前需要清理提交历史。支持自定义分析范围（5-200 个提交）。
+name: normalize-commits
+description: 规范化 Git 提交历史，分析并清理最近的提交，合并重复提交并改写为 Conventional Commits 格式。支持自定义分析范围（5-200 个提交）。使用时机：(1) 提交历史混乱需要整理，(2) 存在重复或无意义提交，(3) 提交消息不符合规范，(4) PR 前需要清理提交历史，(5) 代码审查前规范化提交。触发词：normalize-commits、规范化提交、整理提交历史、清理提交。
 argument-hint: [optional commit count, default: 30]
 allowed-tools: Bash(git *), TodoWrite, AskQuestion
 model: sonnet
