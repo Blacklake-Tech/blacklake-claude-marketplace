@@ -18,7 +18,6 @@ color: green
 - Feature branch: !`git branch --list feature`
 - Remote repositories: !`git remote -v`
 - Remote count: !`git remote | wc -l | tr -d ' '`
-- Current branch upstream: !`git rev-parse --abbrev-ref --symbolic-full-name @{u} 2>&1`
 - Package.json: !`find . -maxdepth 3 -name "package.json" 2>/dev/null | head -3`
 - Pom.xml: !`find . -maxdepth 3 -name "pom.xml" 2>/dev/null | head -3`
 
@@ -237,9 +236,7 @@ color: green
    **情况 B: 1 个远程**
    - 获取远程名称: `git remote`
    - 获取当前分支: `git branch --show-current`
-   - 检查是否已设置上游分支 (从 Context 的 Current branch upstream)
-   - 如果上游为"未设置": 执行 `git push -u {remote} {branch}`
-   - 如果已设置上游: 执行 `git push`
+   - 执行 `git push -u {remote} {branch}`
    - 输出推送结果:
      ```
      🚀 推送成功
@@ -275,9 +272,7 @@ color: green
      - `origin (https://github.com/user/repo.git)`
      - `upstream (https://github.com/org/repo.git)`
    - 用户选择后:
-     - 检查是否已设置上游分支
-     - 如果上游为"未设置": 执行 `git push -u {选择的remote} {branch}`
-     - 如果已设置上游: 执行 `git push {选择的remote} {branch}`
+     - 执行 `git push -u {选择的remote} {branch}`
    - 输出推送结果:
      ```
      🚀 推送成功
