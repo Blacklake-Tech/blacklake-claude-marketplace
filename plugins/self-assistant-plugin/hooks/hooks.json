@@ -8,7 +8,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"${CLAUDE_PLUGIN_ROOT}/skills/quick-commit/scripts/check-spotless.js\"",
+            "command": "node -e \"console.error('[Spotless Hook] PreToolUse triggered!');console.error('[Spotless Hook] Command:', process.argv);console.error('[Spotless Hook] CWD:', process.cwd());console.error('[Spotless Hook] CLAUDE_PLUGIN_ROOT:', process.env.CLAUDE_PLUGIN_ROOT);\"",
             "timeout": 120,
             "statusMessage": "检测并执行 Spotless 格式化..."
           }
