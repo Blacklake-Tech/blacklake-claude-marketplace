@@ -2,9 +2,9 @@
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
   "description": "self-assistant-plugin 的 plugin 级别 hooks 配置",
   "hooks": {
-    "UserPromptSubmit": [
+    "PreToolUse": [
       {
-        "matcher": "skill == \"quick-commit\"",
+        "matcher": "tool == \"Bash\" && tool_input.command matches \"git commit\"",
         "hooks": [
           {
             "type": "command",
@@ -13,7 +13,7 @@
             "statusMessage": "检测并执行 Spotless 格式化..."
           }
         ],
-        "description": "quick-commit 执行前检查并运行 Maven Spotless 格式化"
+        "description": "Git commit 前检查并运行 Maven Spotless 格式化"
       }
     ],
     "Stop": [
