@@ -8,7 +8,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/skills/quick-commit/scripts/check-spotless.sh",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/skills/quick-commit/scripts/check-spotless.js\"",
             "timeout": 120,
             "statusMessage": "检测并执行 Spotless 格式化..."
           }
@@ -22,7 +22,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/skills/quick-commit/scripts/quick-commit-done.sh",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/skills/quick-commit/scripts/quick-commit-done.js\"",
             "statusMessage": "quick-commit 执行完成"
           }
         ],
