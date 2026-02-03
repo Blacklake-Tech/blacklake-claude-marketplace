@@ -5,26 +5,6 @@ argument-hint: [optional custom message]
 allowed-tools: Bash(git *), AskQuestion, Edit
 model: haiku
 color: green
-hooks:
-  UserPromptSubmit:
-    - matcher: "*"
-      hooks:
-        - type: command
-          command: "./scripts/check-spotless.sh"
-          timeout: 120
-          statusMessage: "检测并执行 Spotless 格式化..."
-  Stop:
-    - matcher: "*"
-      hooks:
-        - type: command
-          command: "./scripts/quick-commit-done.sh"
-          statusMessage: "测试相对路径方式1..."
-        - type: command
-          command: "${CLAUDE_PLUGIN_ROOT}/skills/quick-commit/scripts/quick-commit-done2.sh"
-          statusMessage: "测试环境变量路径方式..."
-        - type: command
-          command: "./scripts/quick-commit-done2.sh"
-          statusMessage: "测试相对路径方式2..."
 ---
 
 ## Context

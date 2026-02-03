@@ -2,7 +2,32 @@
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
   "description": "self-assistant-plugin 的 plugin 级别 hooks 配置",
   "hooks": {
+    "UserPromptSubmit": [
+      {
+        "matcher": "skill == \"quick-commit\"",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/skills/quick-commit/scripts/check-spotless.sh",
+            "timeout": 120,
+            "statusMessage": "检测并执行 Spotless 格式化..."
+          }
+        ],
+        "description": "quick-commit 执行前检查并运行 Maven Spotless 格式化"
+      }
+    ],
     "Stop": [
+      {
+        "matcher": "skill == \"quick-commit\"",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/skills/quick-commit/scripts/quick-commit-done.sh",
+            "statusMessage": "quick-commit 执行完成"
+          }
+        ],
+        "description": "quick-commit 执行完成后的通知"
+      },
       {
         "matcher": "*",
         "hooks": [
