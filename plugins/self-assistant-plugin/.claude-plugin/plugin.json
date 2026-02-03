@@ -1,7 +1,7 @@
 {
   "name": "self-assistant-plugin",
   "description": "个人效率助手插件，提供 Git 提交规范化、智能快速提交等功能",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "author": {
     "name": "Siting",
     "email": "siting@example.com"

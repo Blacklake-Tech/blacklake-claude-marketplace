@@ -15,12 +15,12 @@ color: green
 - Unstaged changes: !`git diff --stat`
 - Untracked files: !`git ls-files --others --exclude-standard | head -10`
 - Current branch: !`git branch --show-current`
-- Feature branch exists: !`git branch --list feature | grep -q feature && echo "YES" || echo "NO"`
-- Maven Spotless available: !`if [ -f "pom.xml" ] && grep -q "spotless-maven-plugin" pom.xml 2>/dev/null && command -v mvn &> /dev/null; then echo "YES"; else echo "NO"; fi`
+- Feature branch: !`git branch --list feature`
 - Remote repositories: !`git remote -v`
 - Remote count: !`git remote | wc -l | tr -d ' '`
-- Current branch upstream: !`git rev-parse --abbrev-ref --symbolic-full-name @{u} 2>/dev/null || echo "未设置"`
-- Version files: !`find . -maxdepth 3 \( -name "package.json" -o -name "pom.xml" -o -name "pyproject.toml" -o -name "plugin.json" -o -name "Cargo.toml" -o -name "VERSION" \) 2>/dev/null | head -5`
+- Current branch upstream: !`git rev-parse --abbrev-ref --symbolic-full-name @{u} 2>&1`
+- Package.json: !`find . -maxdepth 3 -name "package.json" 2>/dev/null | head -3`
+- Pom.xml: !`find . -maxdepth 3 -name "pom.xml" 2>/dev/null | head -3`
 
 ## Your task
 
