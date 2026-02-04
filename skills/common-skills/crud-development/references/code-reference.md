@@ -161,7 +161,7 @@ interface {ClassName}Mapper : BaseMapper<{ClassName}PO> {
 ## Repository创建代码片段
 
 ```kotlin
-package tech.blacklake.dev.mfg.domain.core.service.dao.respository.{module}
+package tech.blacklake.dev.mfg.domain.core.service.dao.repository.{module}
 
 import tech.blacklake.dev.mfg.domain.core.service.dao.db.mapper.{ClassName}Mapper
 import tech.blacklake.dev.mfg.domain.core.service.dao.db.model.{module}.{ClassName}PO
@@ -272,6 +272,21 @@ data class {ClassName}DeleteCO(
     @ApiModelProperty("ID", name = "id", required = true)
     val id: Long,
 )
+
+// {ClassName}PageQueryCO.kt
+@CO
+@ApiModel(value = "{表中文名称}分页查询CO")
+data class {ClassName}PageQueryCO(
+    @ApiModelProperty("当前页码", name = "pageNum", required = false)
+    val pageNum: Int = 1,
+
+    @ApiModelProperty("每页条数", name = "pageSize", required = false)
+    val pageSize: Int = 20,
+
+    // 可选查询条件字段
+    // @ApiModelProperty("关键字", name = "keyword", required = false)
+    // val keyword: String? = null,
+)
 ```
 
 ## VO创建代码片段
@@ -312,7 +327,9 @@ package tech.blacklake.dev.mfg.domain.core.service.service.{module}
 import tech.blacklake.dev.mfg.domain.core.service.dao.dataobject.{module}.{ClassName}DO
 import tech.blacklake.dev.mfg.domain.core.service.controller.{api_type}.co.{module}.{ClassName}CreateCO
 import tech.blacklake.dev.mfg.domain.core.service.controller.{api_type}.co.{module}.{ClassName}UpdateCO
+import tech.blacklake.dev.mfg.domain.core.service.controller.{api_type}.co.{module}.{ClassName}PageQueryCO
 import tech.blacklake.dev.mfg.domain.core.service.controller.{api_type}.vo.{module}.{ClassName}VO
+import tech.blacklake.dev.core.boot.common.data.PageResult
 
 /**
  * {表中文名称} Service
@@ -344,6 +361,13 @@ interface {ClassName}Service {
      * @param id ID
      */
     fun delete(id: Long)
+
+    /**
+     * 分页查询
+     * @param request 分页查询请求
+     * @return 分页结果
+     */
+    fun pageQuery(request: {ClassName}PageQueryCO): PageResult<{ClassName}VO>
 }
 ```
 
@@ -353,11 +377,13 @@ interface {ClassName}Service {
 package tech.blacklake.dev.mfg.domain.core.service.service.{module}.impl
 
 import tech.blacklake.dev.mfg.domain.core.service.service.{module}.{ClassName}Service
-import tech.blacklake.dev.mfg.domain.core.service.dao.respository.{module}.{ClassName}Repository
+import tech.blacklake.dev.mfg.domain.core.service.dao.repository.{module}.{ClassName}Repository
 import tech.blacklake.dev.mfg.domain.core.service.dao.dataobject.{module}.{ClassName}DO
 import tech.blacklake.dev.mfg.domain.core.service.controller.{api_type}.co.{module}.{ClassName}CreateCO
 import tech.blacklake.dev.mfg.domain.core.service.controller.{api_type}.co.{module}.{ClassName}UpdateCO
+import tech.blacklake.dev.mfg.domain.core.service.controller.{api_type}.co.{module}.{ClassName}PageQueryCO
 import tech.blacklake.dev.mfg.domain.core.service.controller.{api_type}.vo.{module}.{ClassName}VO
+import tech.blacklake.dev.core.boot.common.data.PageResult
 import tech.blacklake.dev.core.boot.common.data.Result
 import org.springframework.stereotype.Service
 import org.springframework.beans.factory.annotation.Autowired
@@ -409,9 +435,12 @@ class {ClassName}ServiceImpl : {ClassName}Service {
         // 1. 查询现有数据
         val po = repository.getById(request.id)
 
-        // 2. 更新字段
+        // 2. 更新字段（根据请求对象中的非空字段更新）
         val updatedPO = po.copy(
-            // 根据请求字段更新
+            // 示例：如果请求中有该字段则更新，否则保持原值
+            // field1 = request.field1 ?: po.field1,
+            // field2 = request.field2 ?: po.field2,
+            operatorId = BlackBootContext.getUserId(),
             updatedAt = LocalDateTime.now(),
         )
 
@@ -421,6 +450,32 @@ class {ClassName}ServiceImpl : {ClassName}Service {
 
     override fun delete(id: Long) {
         repository.delete(id)
+    }
+
+    override fun pageQuery(request: {ClassName}PageQueryCO): PageResult<{ClassName}VO> {
+        // 1. 构建查询条件
+        val wrapper = QueryWrapper<{ClassName}PO>()
+            .eq("org_id", BlackBootContext.getOrgId())
+            .eq("deleted_at", 0)
+            // 根据实际需求添加查询条件
+            // .like(request.keyword.isNotBlank(), "name", request.keyword)
+            .orderByDesc("created_at")
+
+        // 2. 执行分页查询
+        val page = Page<{ClassName}PO>(request.pageNum.toLong(), request.pageSize.toLong())
+        val pageResult = mapper.selectPage(page, wrapper)
+
+        // 3. 转换结果
+        val doList = {ClassName}PO2DOConverter.toDOList(pageResult.records)
+        val voList = {ClassName}DO2VOConverter.toVOList(doList)
+
+        // 4. 返回分页结果
+        return PageResult(
+            pageNum = request.pageNum,
+            pageSize = request.pageSize,
+            total = pageResult.total,
+            list = voList
+        )
     }
 }
 ```
@@ -442,9 +497,10 @@ object {ClassName}PO2DOConverter {
         return {ClassName}DO(
             id = po.id,
             orgId = po.orgId,
-            // 映射其他字段
+            // 根据实际字段映射，示例如下：
             // field1 = po.field1,
             // field2 = po.field2,
+            // 注意：字段名需要与 PO 和 DO 中的定义保持一致
         )
     }
 
@@ -464,8 +520,10 @@ object {ClassName}CO2POConverter {
         return {ClassName}PO(
             id = id,
             orgId = BlackBootContext.getOrgId(),
-            // 映射字段
+            // 根据实际字段映射，示例如下：
             // field1 = co.field1,
+            // field2 = co.field2,
+            // 注意：必填字段从 CO 中获取，可选字段使用 co.field ?: defaultValue
             creatorId = BlackBootContext.getUserId(),
             operatorId = BlackBootContext.getUserId(),
             createdAt = now,
@@ -480,8 +538,10 @@ object {ClassName}DO2VOConverter {
     fun toVO(do: {ClassName}DO): {ClassName}VO {
         return {ClassName}VO(
             id = do.id,
-            // 映射字段
+            // 根据实际字段映射，示例如下：
             // field1 = do.field1,
+            // field2 = do.field2,
+            // 注意：字段名需要与 DO 和 VO 中的定义保持一致
         )
     }
 
@@ -501,8 +561,10 @@ import tech.blacklake.dev.mfg.domain.core.service.controller.{api_type}.co.{modu
 import tech.blacklake.dev.mfg.domain.core.service.controller.{api_type}.co.{module}.{ClassName}CreateCO
 import tech.blacklake.dev.mfg.domain.core.service.controller.{api_type}.co.{module}.{ClassName}UpdateCO
 import tech.blacklake.dev.mfg.domain.core.service.controller.{api_type}.co.{module}.{ClassName}DeleteCO
+import tech.blacklake.dev.mfg.domain.core.service.controller.{api_type}.co.{module}.{ClassName}PageQueryCO
 import tech.blacklake.dev.mfg.domain.core.service.controller.{api_type}.vo.{module}.{ClassName}VO
 import tech.blacklake.dev.core.boot.common.data.Result
+import tech.blacklake.dev.core.boot.common.data.PageResult
 import org.springframework.web.bind.annotation.*
 import org.springframework.beans.factory.annotation.Autowired
 import io.swagger.annotations.Api
@@ -560,6 +622,16 @@ class {ClassName}Controller {
     fun delete(@RequestBody request: {ClassName}DeleteCO): Result<String> {
         service.delete(request.id)
         return Result("删除成功")
+    }
+
+    /**
+     * 分页查询{表中文名称}列表
+     */
+    @ApiOperation("分页查询{表中文名称}列表")
+    @PostMapping("/_page")
+    fun pageQuery(@RequestBody request: {ClassName}PageQueryCO): Result<PageResult<{ClassName}VO>> {
+        val result = service.pageQuery(request)
+        return Result(result)
     }
 }
 ```

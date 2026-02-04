@@ -1,5 +1,5 @@
 ---
-name: curd-development
+name: crud-development
 description:
     当用户提出以下类型的需求时，触发此 SKILL：
     - "帮我创建一个新业务的 CRUD"
@@ -85,10 +85,11 @@ task_trace_relationship → TaskTraceRelationship
 1. PO:      {ClassName}PO        (如：ProduceTaskPO)
 2. DO:      {ClassName}DO        (如：ProduceTaskDO)
 3. VO:      {ClassName}VO        (如：ProduceTaskVO)
-4. CO:      {ClassName}QueryCO   (查询)
-            {ClassName}CreateCO  (创建)
-            {ClassName}UpdateCO  (更新)
-            {ClassName}DeleteCO  (删除)
+4. CO:      {ClassName}QueryCO    (查询)
+            {ClassName}CreateCO   (创建)
+            {ClassName}UpdateCO   (更新)
+            {ClassName}DeleteCO   (删除)
+            {ClassName}PageQueryCO (分页查询)
 5. Mapper:  {ClassName}Mapper    (如：ProduceTaskMapper)
 6. Repository: {ClassName}Repository (如：ProduceTaskRepository)
 7. Service:     {ClassName}Service    (如：ProduceTaskService)
@@ -127,7 +128,7 @@ app 类型，produce_task 表 → /app/v1/produce_task
 
 ### 4.1 生成 PO（持久化对象）
 
-**文件路径**：`dao/po/{module}/{ClassName}PO.kt`v
+**文件路径**：`dao/po/{module}/{ClassName}PO.kt`
 
 **生成规则**：
 
@@ -163,7 +164,7 @@ app 类型，produce_task 表 → /app/v1/produce_task
 
 ### 4.4 生成 Repository
 
-**文件路径**：`dao/respository/{module}/{ClassName}Repository.kt`
+**文件路径**：`dao/repository/{module}/{ClassName}Repository.kt`
 
 **生成规则**：
 
@@ -172,7 +173,12 @@ app 类型，produce_task 表 → /app/v1/produce_task
 
 ### 4.5 生成 CO（请求对象）
 
-**文件路径**：`controller/{api_type}/co/{module}/{ClassName}QueryCO.kt`
+**文件路径**：
+- `controller/{api_type}/co/{module}/{ClassName}QueryCO.kt`
+- `controller/{api_type}/co/{module}/{ClassName}CreateCO.kt`
+- `controller/{api_type}/co/{module}/{ClassName}UpdateCO.kt`
+- `controller/{api_type}/co/{module}/{ClassName}DeleteCO.kt`
+- `controller/{api_type}/co/{module}/{ClassName}PageQueryCO.kt`
 
 **生成规则**：
 
@@ -240,25 +246,27 @@ app 类型，produce_task 表 → /app/v1/produce_task
 
 📁 生成的文件：
 
-1. dao/db/model/{module}/{ClassName}PO.kt
+1. dao/po/{module}/{ClassName}PO.kt
 2. dao/dataobject/{module}/{ClassName}DO.kt
-3. dao/db/mapper/{ClassName}Mapper.kt
-4. dao/respository/{module}/{ClassName}Repository.kt
+3. dao/mapper/{ClassName}Mapper.kt
+4. dao/repository/{module}/{ClassName}Repository.kt
 5. controller/{api_type}/co/{module}/{ClassName}QueryCO.kt
 6. controller/{api_type}/co/{module}/{ClassName}CreateCO.kt
 7. controller/{api_type}/co/{module}/{ClassName}UpdateCO.kt
 8. controller/{api_type}/co/{module}/{ClassName}DeleteCO.kt
-9. controller/{api_type}/vo/{module}/{ClassName}VO.kt
-10. service/{module}/{ClassName}Service.kt
-11. service/{module}/impl/{ClassName}ServiceImpl.kt
-12. converter/{module}/{ClassName}PO2DOConverter.kt
-13. converter/{module}/{ClassName}CO2POConverter.kt
-14. converter/{module}/{ClassName}DO2VOConverter.kt
-15. controller/{api_type}/{module}/{ClassName}Controller.kt
+9. controller/{api_type}/co/{module}/{ClassName}PageQueryCO.kt
+10. controller/{api_type}/vo/{module}/{ClassName}VO.kt
+11. service/{module}/{ClassName}Service.kt
+12. service/{module}/impl/{ClassName}ServiceImpl.kt
+13. converter/{module}/{ClassName}PO2DOConverter.kt
+14. converter/{module}/{ClassName}CO2POConverter.kt
+15. converter/{module}/{ClassName}DO2VOConverter.kt
+16. controller/{api_type}/{module}/{ClassName}Controller.kt
 
 🔗 API 接口：
 
 - POST /{api_type}/v1/{table_name}/_detail  (查询详情)
+- POST /{api_type}/v1/{table_name}/_page    (分页查询)
 - POST /{api_type}/v1/{table_name}/_create  (创建)
 - POST /{api_type}/v1/{table_name}/_update  (更新)
 - POST /{api_type}/v1/{table_name}/_delete  (删除)
