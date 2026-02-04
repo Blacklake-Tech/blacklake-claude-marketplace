@@ -1,0 +1,31 @@
+{
+  "templates": {
+    "custom-object": {
+      "name": "自定义对象",
+      "description": "自定义业务对象的前端页面",
+      "github_url": "https://github.com/Blacklake-Tech/coder-custom-object.git",
+      "metadata_path": "src/Metadata.ts",
+      "project_type": "react-vite",
+      "supported_zones": ["feature", "test", "pre", "prod-ali", "prod-hw", "prod-gt"]
+    },
+    "work-order": {
+      "name": "工单",
+      "description": "工单管理的前端页面",
+      "github_url": "https://github.com/Blacklake-Tech/coder-work-order.git",
+      "metadata_path": "src/Metadata.ts",
+      "project_type": "react-vite",
+      "supported_zones": ["feature", "test", "pre", "prod-ali", "prod-hw", "prod-gt"],
+      "status": "coming-soon"
+    },
+    "material": {
+      "name": "物料",
+      "description": "物料管理的前端页面",
+      "github_url": "https://github.com/Blacklake-Tech/coder-material.git",
+      "metadata_path": "src/Metadata.ts",
+      "project_type": "react-vite",
+      "supported_zones": ["feature", "test", "pre", "prod-ali", "prod-hw", "prod-gt"],
+      "status": "coming-soon"
+    }
+  },
+  "default_template": "custom-object"
+}

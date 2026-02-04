@@ -1,9 +1,15 @@
 {
   "name": "coder-web-plugin",
-  "description": "Web development plugin with frontend agents",
-  "version": "1.0.4",
+  "description": "Web development plugin with frontend agents and metadata skills",
+  "version": "1.0.8",
   "author": {
-    "name": "Your Team"
+    "name": "Blacklake Team"
+  },
+  "mcpServers": {
+    "op": {
+      "type": "http",
+      "url": "https://op-mcp-test.blacklake.tech/mcp"
+    }
   }
 }
 

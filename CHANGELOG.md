@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.1] - 2026-02-02
+
+### Changed - self-assistant-plugin
+
+#### quick-commit 优化
+- ✅ **增强变更感知**：新增工作区变更和未跟踪文件感知（Unstaged changes, Untracked files）
+- ✅ **自动暂存所有变更**：默认自动执行 `git add .` 处理所有未提交内容
+- ✅ **主动推送询问**：提交成功后主动询问用户是否推送到远程
+- ✅ **支持合并到 feature**：新增步骤 9，支持提交后合并到 feature 分支（关键词触发）
+- ✅ **新增 feature 分支检测**：Context 中新增 Feature branch exists 字段
+- ✅ **完善错误处理**：新增错误 6（feature 分支不存在）的处理逻辑
+- ✅ **优化使用示例**：新增合并 feature 的使用示例
+
+#### 核心原则
+1. **全面感知**：默认处理工作区和暂存区的所有未提交内容
+2. **自动暂存**：如果有任何未暂存的变更，自动执行 `git add .`
+3. **主动推送**：提交成功后主动询问是否推送到远程
+4. **可选合并**：支持提交后合并到 feature 分支（需明确指定）
+
+### Removed - self-assistant-plugin
+- ❌ **删除 code-review.md**：移除代码审查命令
+
 ## [1.1.0] - 2026-01-12
 
 ### Added - self-assistant-plugin

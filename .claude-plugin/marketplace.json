@@ -28,11 +28,11 @@
     {
       "name": "coder-web-plugin",
       "source": "./plugins/coder-web-plugin",
-      "description": "Web development plugin with frontend agents",
+      "description": "Web development plugin with frontend agents and metadata query skills",
       "author": {
         "name": "Siting"
       },
-      "keywords": ["code", "development", "frontend", "web", "html", "react"],
+      "keywords": ["code", "development", "frontend", "web", "html", "react", "metadata", "object"],
       "category": "development"
     },
     {

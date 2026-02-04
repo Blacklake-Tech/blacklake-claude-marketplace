@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "description": "self-assistant-plugin 的 plugin 级别 hooks 配置",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "tool == \"Bash\" && tool_input.command matches \"git commit\"",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node -e \"console.error('[Spotless Hook] PreToolUse triggered!');console.error('[Spotless Hook] Command:', process.argv);console.error('[Spotless Hook] CWD:', process.cwd());console.error('[Spotless Hook] CLAUDE_PLUGIN_ROOT:', process.env.CLAUDE_PLUGIN_ROOT);\"",
+            "timeout": 120,
+            "statusMessage": "检测并执行 Spotless 格式化..."
+          }
+        ],
+        "description": "Git commit 前检查并运行 Maven Spotless 格式化"
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "skill == \"quick-commit\"",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/skills/quick-commit/scripts/quick-commit-done.js\"",
+            "statusMessage": "quick-commit 执行完成"
+          }
+        ],
+        "description": "quick-commit 执行完成后的通知"
+      },
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/plugin-test-hook.sh",
+            "statusMessage": "Plugin 级别 hook 测试..."
+          }
+        ],
+        "description": "测试用的 plugin 级别 hook - 在任意 skill 执行完成后打印消息"
+      }
+    ]
+  }
+}

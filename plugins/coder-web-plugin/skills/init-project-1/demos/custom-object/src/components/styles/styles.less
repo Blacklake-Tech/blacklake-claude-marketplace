@@ -1,0 +1,173 @@
+.bl-listLayout {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  background-color: white;
+
+  // 顶部筛选表单区域（内联布局）
+  .bl-listLayout-filter {
+    padding: 16px;
+    padding-bottom: 0;
+    margin-bottom: 0;
+    display: flex;
+    align-items: flex-start;
+    flex-wrap: nowrap;
+
+    .bl-listLayout-filterFields {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+
+      .ant-form {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+
+      .bl-listLayout-filterRow {
+        display: flex;
+        width: 100%;
+        gap: 16px;
+        flex-wrap: nowrap;
+
+        .bl-listLayout-filterField {
+          flex: 1;
+          min-width: 0;
+          margin-bottom: 0;
+          margin-right: 0 !important;
+          width: calc((100% - 32px) / 3);
+
+          .ant-form-item-label {
+            padding-bottom: 4px;
+            min-width: 80px;
+            text-align: left;
+          }
+
+          .ant-form-item-control {
+            flex: 1;
+          }
+        }
+      }
+    }
+
+    .bl-listLayout-filterActions {
+      margin-left: auto;
+      padding-left: 16px;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      padding-top: 4px;
+    }
+
+  }
+
+  // 更多/收起：单独一个 div 放在筛选区域最下面，并居中；同时作为筛选区的底边
+  .bl-listLayout-filterToggle {
+    padding: 8px 16px 12px;
+    border-bottom: 1px solid #eaecf1;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .bl-listLayout-head {
+    display: flex;
+    justify-content: space-between;
+    border-bottom: 1px solid #eaecf1;
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+
+  .bl-listLayout-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    padding: 0px 16px 0px;
+
+    .ant-table-wrapper {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .ant-spin-nested-loading {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .ant-spin-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .ant-table {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .ant-table-container {
+      flex: 1;
+      overflow: hidden;
+    }
+
+    .ant-table-body {
+      overflow-y: auto !important;
+    }
+
+    .ant-table-pagination {
+      flex-shrink: 0;
+      margin-top: 16px;
+      margin-bottom: 16px;
+    }
+
+    .ant-table-tbody > .ant-table-row > .operation-column {
+      white-space: nowrap;
+
+      > .ant-btn-link {
+        padding-left: 0;
+        padding-right: 0;
+        border: none;
+      }
+
+      > .ant-btn-link[disabled] {
+        color: #9ae3cc;
+      }
+
+      > .ant-btn-link:not(:last-of-type) {
+        margin-right: 16px;
+      }
+    }
+
+    // 确保固定列正确显示
+    .ant-table-cell-fix-left,
+    .ant-table-cell-fix-right {
+      z-index: 1;
+    }
+
+    // 确保列内容完整显示
+    .ant-table-cell {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    // 固定列阴影效果
+    .ant-table-cell-fix-left-last::after,
+    .ant-table-cell-fix-right-first::after {
+      box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
+    }
+  }
+}
+
