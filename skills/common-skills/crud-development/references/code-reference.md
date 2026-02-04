@@ -13,7 +13,7 @@ val userId = BlackBootContext.getUserId()
 @Autowired
 private lateinit var gidService: BlackBootGidService
 
-val id = gidService.nextId()
+val id = gidService.id
 ```
 
 ## 记录日志
@@ -30,7 +30,7 @@ logger.error("错误信息", e)
 ```kotlin
 import tech.blacklake.dev.core.boot.common.exception.BusinessException
 
-throw BusinessException("错误信息")
+throw BusinessException(ErrorCodeEnum.EXECUTOR_SIZE_100)
 ```
 
 ## QueryWrapper 条件构造

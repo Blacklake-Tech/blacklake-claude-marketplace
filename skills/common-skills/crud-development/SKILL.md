@@ -1,6 +1,6 @@
 ---
 name: curd-development
-description: 
+description:
     当用户提出以下类型的需求时，触发此 SKILL：
     - "帮我创建一个新业务的 CRUD"
     - "生成 XXX 功能的增删改查"
@@ -10,6 +10,21 @@ description:
 ---
 
 # CRUD开发规范
+
+## 第零步：读取代码规范参考文档
+
+**重要：在开始执行此 SKILL 前，必须先读取同目录下的 `code-reference.md` 文件。**
+
+该文件包含：
+
+- 字段类型完整映射表
+- PO/DO/Mapper/Repository/CO/VO/Service/ServiceImpl/Converter/Controller 的标准代码片段
+- ID生成方式
+- 业务异常抛出方式
+- 日志记录方式
+- QueryWrapper 条件构造方式
+
+请使用 Read 工具读取 `./code-reference.md` 后再开始生成代码。
 
 ## 第一步：收集信息
 
@@ -112,7 +127,7 @@ app 类型，produce_task 表 → /app/v1/produce_task
 
 ### 4.1 生成 PO（持久化对象）
 
-**文件路径**：`dao/po/{module}/{ClassName}PO.kt`
+**文件路径**：`dao/po/{module}/{ClassName}PO.kt`v
 
 **生成规则**：
 
@@ -144,6 +159,7 @@ app 类型，produce_task 表 → /app/v1/produce_task
 **生成规则**：
 
 参考code-reference.md中的Mapper创建代码片段
+请优先使用mybatis-plus
 
 ### 4.4 生成 Repository
 
@@ -152,6 +168,7 @@ app 类型，produce_task 表 → /app/v1/produce_task
 **生成规则**：
 
 参考code-reference.md中的Repository创建代码片段
+请优先使用mybatis-plus
 
 ### 4.5 生成 CO（请求对象）
 
