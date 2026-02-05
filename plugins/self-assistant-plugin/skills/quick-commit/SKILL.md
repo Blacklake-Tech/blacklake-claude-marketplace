@@ -1,6 +1,6 @@
 ---
 name: quick-commit
-description: 智能生成符合 Conventional Commits 规范的提交信息并提交。自动推断 type、scope 和 subject，或使用自定义消息（带格式验证）。支持版本号自动升级、Maven Spotless 代码格式化、自动推送到远程。使用时机：(1) 需要快速提交代码，(2) 需要符合规范的提交消息，(3) 需要同时升级版本号并提交，(4) 需要格式化后提交，(5) 需要提交后推送或合并到 feature 分支。触发词：quick-commit、快速提交、升级版本后提交、格式化后提交。
+description: 智能生成符合 Conventional Commits 规范的提交信息并提交。自动推断 type、scope 和 subject，或使用自定义消息（带格式验证）。支持版本号自动升级、Maven Spotless 代码格式化（先检查后格式化）、CHANGELOG.md 自动更新（Keep a Changelog 格式）、自动推送到远程。使用时机：(1) 需要快速提交代码，(2) 需要符合规范的提交消息，(3) 需要同时升级版本号并提交，(4) 需要格式化后提交，(5) 需要自动更新 CHANGELOG，(6) 需要提交后推送或合并到 feature 分支。触发词：quick-commit、快速提交、升级版本后提交、格式化后提交。
 argument-hint: [optional custom message]
 allowed-tools: Bash(git *), AskQuestion, Edit
 model: haiku
@@ -20,6 +20,8 @@ color: green
 - Remote count: !`git remote | wc -l | tr -d ' '`
 - Package.json: !`find . -maxdepth 3 -name "package.json" 2>/dev/null | head -3`
 - Pom.xml: !`find . -maxdepth 3 -name "pom.xml" 2>/dev/null | head -3`
+- CHANGELOG exists: !`[ -f "CHANGELOG.md" ] && echo "YES" || echo "NO"`
+- Maven Spotless configured: !`[ -f "pom.xml" ] && grep -q "spotless-maven-plugin" pom.xml 2>/dev/null && command -v mvn >/dev/null 2>&1 && echo "YES" || echo "NO"`
 
 ## Your task
 
@@ -122,36 +124,126 @@ color: green
 2.5. **Maven Spotless 代码格式化（条件执行）**：
 
    **仅在满足以下所有条件时执行**：
-   - Context 中 `Maven Spotless available` 为 `YES`
+   - Context 中 `Maven Spotless configured` 为 `YES`
    - 即：项目根目录存在 `pom.xml`
    - 且 `pom.xml` 配置了 `spotless-maven-plugin`
    - 且系统中 `mvn` 命令可用
 
-   **执行操作**：
+   **执行策略：先检查后格式化**
 
-   1. 通知用户开始格式化：
-      ```
-      🔧 代码格式化：检测到 Maven Spotless，正在格式化代码...
-      ```
-
-   2. 执行格式化命令：
+   1. 执行检查命令：
       ```bash
-      mvn spotless:apply
+      mvn spotless:check
       ```
 
-   3. 检查执行结果：
+   2. 根据检查结果决定行动：
+      - **如果检查通过**（exit code 0）：
+        ```
+        ✅ 代码格式检查：已符合规范，无需格式化
+        ```
+        跳过格式化，继续步骤 2.6
+
+      - **如果检查失败**（exit code 非 0）：
+        ```
+        🔧 代码格式化：检测到格式问题，正在自动格式化...
+        ```
+        执行格式化：`mvn spotless:apply`
+
+   3. 格式化后处理：
       - 如果成功：重新暂存修改的文件 `git add -u`
+        ```
+        ✅ 格式化完成：代码已格式化并重新暂存
+        ```
       - 如果失败：使用 `AskQuestion` 询问用户是否继续提交
 
-   4. 通知完成：
-      ```
-      ✅ 格式化完成：代码已格式化并重新暂存
-      ```
-
    **注意事项**：
+   - 优先使用 `spotless:check` 避免不必要的格式化
    - 格式化可能修改暂存的文件，会自动重新 `git add -u`
    - 如果格式化耗时较长，会显示进度提示
    - 如果项目未配置 Spotless，此步骤自动跳过
+
+2.6. **CHANGELOG 自动更新（条件执行）**：
+
+   **仅在满足以下条件时执行**：
+   - Context 中 `CHANGELOG exists` 为 `YES`
+   - 即：项目根目录存在 `CHANGELOG.md` 文件
+
+   **执行策略：混合方案（Keep a Changelog 格式 + 从 Conventional Commits 自动生成）**
+
+   1. 读取 CHANGELOG.md 内容
+
+   2. 解析提交消息，提取 type、scope 和 subject：
+      - 自动生成模式：从步骤 3-5 获取
+      - 自定义消息模式：解析 `$ARGUMENTS`
+
+   3. 根据 type 确定 CHANGELOG 分类：
+      ```
+      feat          → ### Added
+      fix           → ### Fixed
+      refactor/perf → ### Changed
+      docs          → ### Changed
+      style         → ### Changed
+      test          → 跳过（不记录到 CHANGELOG）
+      build/ci      → 跳过
+      chore         → 跳过
+      revert        → ### Fixed
+      ```
+
+   4. 在 `## [Unreleased]` 部分添加条目：
+      - 格式：`- {emoji} {subject} ({scope})`
+      - emoji 映射：
+        ```
+        Added   → ✅
+        Fixed   → 🐛
+        Changed → ♻️
+        ```
+      - 示例：`- ✅ 添加用户登录功能 (auth)`
+
+   5. 智能插入位置：
+      - 如果 `[Unreleased]` 下已有对应的 `### Added/Fixed/Changed` 标题：
+        在该标题下追加条目
+      - 如果没有该标题：
+        在 `[Unreleased]` 下创建新标题并添加条目
+      - 保持标题顺序：`### Added` → `### Changed` → `### Fixed`
+
+   6. 使用 Edit 工具更新 CHANGELOG.md
+
+   7. 暂存 CHANGELOG.md：
+      ```bash
+      git add CHANGELOG.md
+      ```
+
+   8. 输出提示：
+      ```
+      📝 CHANGELOG 已更新：[{分类}] {subject}
+      ```
+
+   **完整示例**：
+
+   **提交消息**：`feat(auth): 添加用户登录功能`
+
+   **CHANGELOG.md 更新前**：
+   ```markdown
+   ## [Unreleased]
+
+   ## [1.0.1] - 2026-02-02
+   ```
+
+   **CHANGELOG.md 更新后**：
+   ```markdown
+   ## [Unreleased]
+
+   ### Added
+   - ✅ 添加用户登录功能 (auth)
+
+   ## [1.0.1] - 2026-02-02
+   ```
+
+   **注意事项**：
+   - 仅记录用户可见的变更（feat、fix、refactor、perf、docs）
+   - 跳过技术性变更（test、build、ci、chore）
+   - 如果提交消息无法解析，提示用户但不中断提交流程
+   - CHANGELOG 更新失败不影响 Git 提交（记录警告即可）
 
 3. **如果是自动生成模式，分析变更推断 type**：
    - 新增文件/功能 → `feat`
@@ -370,11 +462,66 @@ feat(plugin): 添加 Git 智能提交命令
 
 ### 错误3.5：Spotless 格式化失败
 
-使用 `AskQuestion` 询问用户：
-- `[1] 跳过格式化，继续提交`
-- `[2] 取消提交，手动修复`
+**场景**：执行 `mvn spotless:apply` 失败
 
-详细处理逻辑见 [references/error-handling.md](references/error-handling.md)
+**处理流程**：
+
+使用 `AskQuestion` 询问用户：
+
+```
+❌ 代码格式化失败
+
+Maven Spotless 格式化过程中出现错误：
+{错误信息}
+
+请选择后续操作：
+```
+
+**选项**：
+- `跳过格式化，继续提交` - 忽略格式化错误，直接提交当前变更
+- `取消提交，手动修复` - 中断提交流程，让用户手动处理格式化问题
+
+**选择"跳过格式化"**：
+```
+⚠️ 已跳过格式化，继续提交流程
+```
+继续步骤 2.6（CHANGELOG 更新）
+
+**选择"取消提交"**：
+```
+ℹ️ 提交已取消
+
+建议手动检查格式化问题：
+mvn spotless:check
+
+修复后重新运行：
+/quick-commit
+```
+退出流程
+
+### 错误3.6：CHANGELOG 更新失败
+
+**场景**：解析提交消息或更新 CHANGELOG.md 失败
+
+**处理策略**：记录警告，不中断提交流程
+
+```
+⚠️ CHANGELOG 更新失败：{原因}
+
+提交将继续进行，请稍后手动更新 CHANGELOG.md
+```
+
+**常见原因**：
+1. CHANGELOG.md 格式不符合预期
+2. 提交消息格式无法解析
+3. 文件写入权限问题
+
+**解决方案**：
+- 提交完成后手动编辑 CHANGELOG.md
+- 检查 CHANGELOG.md 是否遵循 Keep a Changelog 格式
+- 确保 `## [Unreleased]` 标题存在
+
+**注意**：CHANGELOG 更新是辅助功能，失败不影响 Git 提交
 
 ### 错误4：无法推断提交类型
 

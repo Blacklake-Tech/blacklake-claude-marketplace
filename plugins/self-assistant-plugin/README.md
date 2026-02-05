@@ -1,6 +1,6 @@
 # Self Assistant Plugin
 
-个人效率助手插件，提供 Git 提交规范化、智能快速提交、代码审查等功能。
+个人效率助手插件，提供 Git 提交规范化、智能快速提交、持续学习系统等功能。
 
 ## 🎯 核心特性
 
@@ -10,6 +10,9 @@
 - ✅ **结构化输出**：使用 emoji 和分隔线提升可读性
 - ✅ **完善错误处理**：详细的错误提示和解决方案
 - ✅ **安全第一**：自动备份、完整回滚指令
+- 🧠 **持续学习系统**：continuous-learning-v2 实时学习会话模式
+- 📋 **CHANGELOG 自动化**：Keep a Changelog 格式 + Conventional Commits
+- ☕ **Java 项目支持**：Maven Spotless 智能格式化（先检查后格式化）
 
 ## 功能概览
 
@@ -26,7 +29,8 @@
 - ⚡ 简洁高效的提交流程
 - 📝 支持自定义提交消息（带格式验证）
 - 🔧 完整 Git 工作流支持
-- ☕ **Maven Spotless 自动格式化（Java 项目）**
+- ☕ **Maven Spotless 智能格式化（Java 项目）** - 先检查后格式化
+- 📋 **CHANGELOG.md 自动更新** - Keep a Changelog 格式 + Conventional Commits
 - 📊 进度实时通知
 - ❌ 完善的错误处理
 
@@ -38,11 +42,26 @@ git add src/api/user.ts
 # 2. 自动生成提交消息
 /quick-commit
 # 自动生成类似：feat(api): 添加用户管理接口
+# 如果存在 CHANGELOG.md，会自动添加条目到 [Unreleased] 部分
 
 # 3. 使用自定义消息（会验证格式）
 /quick-commit "feat(auth): 添加用户登录功能"
 /quick-commit "fix(api): 修复空指针异常"
 ```
+
+**Maven Spotless 支持**：
+- 检测到 Java 项目（pom.xml + spotless-maven-plugin）自动启用
+- 先执行 `mvn spotless:check` 检查格式
+- 仅在有格式问题时执行 `mvn spotless:apply` 格式化
+- 格式化失败可选择跳过或取消提交
+
+**CHANGELOG 自动更新**：
+- 检测到 CHANGELOG.md 自动启用
+- 从提交消息提取 type、scope 和 subject
+- 根据 type 分类到对应章节（Added/Fixed/Changed）
+- 自动在 `## [Unreleased]` 下添加条目
+- 格式：`- {emoji} {subject} ({scope})`
+- 示例：`- ✅ 添加用户登录功能 (auth)`
 
 **Type 推断规则**：
 | 文件类型 | 推断类型 | 示例 |
@@ -130,7 +149,92 @@ git add src/api/user.ts
 "更新配置"                    → chore(config): 更新配置文件
 ```
 
-#### 3. `/code-review` - 代码审查
+#### 3. Continuous Learning v2 - 持续学习系统（中文版）
+
+**基于"本能(Instinct)"的自我学习架构**，通过 hooks 实时观察会话，创建带置信度评分的原子化学习单元，并演化为技能/命令/代理。
+
+**✨ 已全部翻译为中文**：
+- ✅ SKILL.md（混合风格：关键术语保留英文，说明用中文）
+- ✅ observer.md（完整中文）
+- ✅ observe.sh（注释中文化）
+- ✅ config.json（添加中文注释）
+
+**核心特性**：
+- 🧠 **原子化本能学习** - 每个本能是一个小的学习单元（trigger + action + 置信度）
+- 📊 **置信度系统** - 0.3-0.9 加权，随使用自动调整
+- 🔄 **100% 可靠观察** - 使用 PreToolUse/PostToolUse hooks（非概率性）
+- 🤖 **后台 Observer Agent** - 使用 Haiku 模型分析（节省成本）
+- 🧩 **可演化** - 本能可聚类为技能/命令/代理
+- 📤 **可分享** - 导出/导入本能用于团队协作
+
+**工作流程**：
+```
+会话活动
+    ↓
+Hooks 捕获（100% 可靠）
+    ↓
+observations.jsonl
+    ↓
+Observer Agent 分析
+    ↓
+创建/更新本能
+    ↓
+演化为技能
+```
+
+**本能示例**：
+```yaml
+---
+id: prefer-grep-before-edit
+trigger: "当需要搜索代码进行修改时"
+confidence: 0.65
+domain: "workflow"
+source: "session-observation"
+---
+
+# 编辑前先使用 Grep
+
+## Action（行动）
+在使用 Edit 之前，总是先使用 Grep 找到精确位置。
+
+## Evidence（证据）
+- 在会话 abc123 中观察到 8 次
+- 模式：Grep → Read → Edit 序列
+```
+
+**检测模式**：
+- **用户纠正** - "不，应该用 X 而不是 Y"
+- **错误解决** - 错误 → 修复的重复模式
+- **重复工作流** - 相同的工具序列
+- **工具偏好** - 一致性地优先使用某个工具
+
+**配置说明**：
+已在 `hooks/hooks.json` 中配置方案 A（激进派）：
+- PreToolUse hook: 观察工具使用前的状态
+- PostToolUse hook: 记录工具执行结果
+- 数据存储: `~/.claude/homunculus/observations.jsonl`
+- 本能存储: `~/.claude/homunculus/instincts/personal/`
+
+**可用命令**：
+- `/instinct-status` - 查看所有学习的本能及置信度
+- `/evolve` - 将相关本能聚类为技能
+- `/instinct-export` - 导出本能用于分享
+- `/instinct-import <file>` - 导入他人的本能
+
+**置信度等级**：
+| 分数 | 含义 | 行为 |
+|------|------|------|
+| 0.3 | 试探性 | 建议但不强制 |
+| 0.5 | 中等 | 相关时应用 |
+| 0.7 | 强烈 | 自动批准应用 |
+| 0.9 | 几乎确定 | 核心行为 |
+
+**翻译说明**：
+- 采用**混合风格**：技术术语保留英文（如 Instinct、Confidence、Observer），说明使用中文
+- Claude 对中文文档理解效果**与英文相同**，不影响功能
+- 本能文件支持中文 trigger 和 action，可以更贴近中文使用习惯
+
+#### 4. `/code-review` - 代码审查
 
 对给定的 Pull Request 进行全面的代码审查。
 

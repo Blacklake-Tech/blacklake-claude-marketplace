@@ -232,9 +232,9 @@ Claude 自动执行:
 </details>
 
 <details>
-<summary><b>📦 self-assistant-plugin (v1.0.0) - 个人效率助手</b></summary>
+<summary><b>📦 self-assistant-plugin (v1.1.0) - 个人效率助手</b></summary>
 
-**提供 Git 工作流优化和代码审查功能**
+**提供 Git 工作流优化、代码审查、安全防护和持续学习功能**
 
 **作者**: Siting
 
@@ -242,15 +242,27 @@ Claude 自动执行:
 
 | Command | 功能描述 |
 |---------|----------|
-| `/quick-commit` | 🚀 智能快速提交 - 自动分析变更，生成符合 Conventional Commits 规范的提交消息 |
+| `/quick-commit` | 🚀 智能快速提交 - 自动分析变更，生成符合 Conventional Commits 规范的提交消息。支持 Maven Spotless 智能格式化、CHANGELOG 自动更新 |
 | `/normalize-commits` | 🔧 规范化提交历史 - 合并重复提交 + 改写不规范提交为标准格式 |
 | `/code-review` | 👀 PR 代码审查 - 多 Agent 并行审查，提供专业的代码质量反馈 |
 
-**Skills (1个)**:
+**Skills (2个)**:
 
 | Skill | 功能描述 |
 |-------|----------|
 | `git-workflow` | 📚 Git 工作流知识库 - Conventional Commits 规范、Type/Scope 推断规则、Rebase 操作指南 |
+| `continuous-learning-v2` | 🧠 **持续学习系统（中文版）** - 基于本能(Instinct)的自我学习架构，实时观察会话并自动创建可复用的经验 |
+
+**Hooks (6个)** - 自动安全防护、智能提醒和持续学习:
+
+| Hook | 功能描述 |
+|------|----------|
+| `UserPromptSubmit` | 📝 记录所有用户输入，用于审计和分析 |
+| `PreToolUse` | 🛡️ 安全防护 - 阻止危险命令（rm -rf, fork bomb）和敏感文件访问（.env, credentials, SSH keys）<br/>🧠 **持续学习** - 自动观察工具使用前的状态 |
+| `PostToolUse` | 📊 记录所有工具执行结果<br/>🧠 **持续学习** - 自动观察工具使用后的结果 |
+| `Notification` | 📱 Claude 需要输入时发送 Mac 通知 + Ping 音效 |
+| `PermissionRequest` | 🔐 记录权限请求 |
+| `Stop` | ✅ quick-commit 执行完成通知 |
 
 **核心特性**:
 - ✅ 任务清单管理 (TodoWrite)
@@ -259,6 +271,54 @@ Claude 自动执行:
 - ✅ 结构化输出 (分隔线 + 表格)
 - ✅ 完善错误处理
 - ✅ 安全第一 (自动备份 + 回滚指令)
+- ✅ 智能安全防护（危险命令 + 敏感文件保护）
+- ✅ 智能通知提醒（Ping 音效 + Mac 通知）
+- ✅ 完整日志记录（按日期组织）
+- ✅ 🆕 **持续学习系统** - 自动学习使用模式并创建可复用经验
+- ✅ 🆕 **Maven Spotless 集成** - Java 项目自动格式化（先检查后格式化）
+- ✅ 🆕 **CHANGELOG 自动更新** - Keep a Changelog 格式 + Conventional Commits
+
+**持续学习系统（continuous-learning-v2）**:
+- 🧠 **自动观察** - 通过 hooks 实时捕获工具使用模式（100% 可靠）
+- 📊 **置信度评分** - 0.3-0.9 加权，随使用自动调整
+- 🎯 **原子化本能** - 小型学习单元，可演化为技能/命令
+- 🌐 **完整中文支持** - 所有文档已翻译，支持中文本能
+- 📤 **团队分享** - 导出/导入本能，团队协作
+
+**quick-commit 增强功能**:
+- ☕ **Maven Spotless 支持** - 检测到 Java 项目自动格式化
+- 📋 **CHANGELOG 自动更新** - 提交时自动更新 CHANGELOG.md
+- 🔧 **智能策略** - 先检查后格式化，仅在需要时执行
+
+**日志位置**:
+```
+<project>/.claude/logs/
+├── 2026-02-05/
+│   ├── events.jsonl              # 所有事件详细日志
+│   ├── user_prompt_submit.json   # 用户输入记录
+│   ├── pre_tool_use.json         # 安全检查记录
+│   ├── post_tool_use.json        # 操作记录
+│   └── notification.json         # 通知记录
+└── 2026-02-06/
+    └── ...
+```
+
+**安全防护示例**:
+```bash
+# 危险命令自动阻止
+"删除所有文件"                    → 🚨 BLOCKED
+"执行 rm -rf /"                   → 🚨 BLOCKED
+
+# 敏感文件自动保护
+"读取 .env 文件"                  → 🔐 BLOCKED
+"读取 credentials.json"           → 🔐 BLOCKED
+"读取 .env.example"               → ✅ 允许（模板文件）
+```
+
+**通知提醒**:
+- 📱 Claude 需要输入时自动发送 Mac 通知
+- 🔊 Ping 音效（清脆的 AI 提示音）
+- 📝 所有通知事件自动记录
 
 </details>
 
@@ -724,7 +784,11 @@ blacklake-claude-marketplace/
 │   │   └── skills/                   # 6 个核心 skills
 │   ├── self-assistant-plugin/        # 个人效率助手
 │   │   ├── commands/                 # 3 个 Git 命令
-│   │   └── skills/                   # Git 工作流知识库
+│   │   ├── hooks/
+│   │   │   └── hooks.json           # Hooks 配置
+│   │   ├── scripts/
+│   │   │   └── hooks/               # 🆕 Hooks 脚本（安全防护 + 通知）
+│   │   └── skills/                  # Git 工作流知识库
 │   ├── coder-beta-plugin/            # Beta 开发插件
 │   │   ├── agents/                   # 4 个前端 agents
 │   │   └── skills/                   # Web 构建工具

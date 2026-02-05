@@ -1,0 +1,75 @@
+{
+  "version": "2.0",
+  "observation": {
+    "enabled": true,
+    "store_path": "~/.claude/homunculus/observations.jsonl",
+    "max_file_size_mb": 10,
+    "archive_after_days": 7,
+    "capture_tools": ["Edit", "Write", "Bash", "Read", "Grep", "Glob"],
+    "ignore_tools": ["TodoWrite"]
+  },
+  "instincts": {
+    "personal_path": "~/.claude/homunculus/instincts/personal/",
+    "inherited_path": "~/.claude/homunculus/instincts/inherited/",
+    "min_confidence": 0.3,
+    "auto_approve_threshold": 0.7,
+    "confidence_decay_rate": 0.02,
+    "max_instincts": 100
+  },
+  "observer": {
+    "enabled": false,
+    "model": "haiku",
+    "run_interval_minutes": 5,
+    "min_observations_to_analyze": 20,
+    "patterns_to_detect": [
+      "user_corrections",
+      "error_resolutions",
+      "repeated_workflows",
+      "tool_preferences",
+      "file_patterns"
+    ]
+  },
+  "evolution": {
+    "cluster_threshold": 3,
+    "evolved_path": "~/.claude/homunculus/evolved/",
+    "auto_evolve": false
+  },
+  "integration": {
+    "skill_creator_api": "https://skill-creator.app/api",
+    "backward_compatible_v1": true
+  },
+  "_comments": {
+    "observation": {
+      "enabled": "启用/禁用观察功能",
+      "store_path": "观察记录存储路径",
+      "max_file_size_mb": "观察文件最大大小（MB），超过后自动归档",
+      "archive_after_days": "归档天数",
+      "capture_tools": "需要捕获的工具列表",
+      "ignore_tools": "忽略的工具列表"
+    },
+    "instincts": {
+      "personal_path": "个人本能存储路径",
+      "inherited_path": "继承本能存储路径（从他人导入）",
+      "min_confidence": "最小置信度阈值（0.3）",
+      "auto_approve_threshold": "自动批准阈值（0.7），超过此值自动应用",
+      "confidence_decay_rate": "置信度衰减率（每周 0.02）",
+      "max_instincts": "最大本能数量限制"
+    },
+    "observer": {
+      "enabled": "启用/禁用后台 Observer Agent（默认禁用）",
+      "model": "使用的模型（haiku 节省成本）",
+      "run_interval_minutes": "运行间隔（分钟）",
+      "min_observations_to_analyze": "最少观察记录数才开始分析",
+      "patterns_to_detect": "要检测的模式类型列表"
+    },
+    "evolution": {
+      "cluster_threshold": "聚类阈值（相关本能数量）",
+      "evolved_path": "演化后的技能/命令/代理存储路径",
+      "auto_evolve": "是否自动演化（默认禁用，手动执行 /evolve）"
+    },
+    "integration": {
+      "skill_creator_api": "Skill Creator API 地址",
+      "backward_compatible_v1": "是否与 v1 向后兼容"
+    }
+  }
+}

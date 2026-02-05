@@ -7,6 +7,83 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-02-05
+
+### Added - self-assistant-plugin
+
+#### Continuous Learning v2 - 持续学习系统（中文版）
+- ✅ **自我学习能力**：集成 continuous-learning-v2 技能，基于本能(Instinct)的学习架构
+- ✅ **自动观察**：通过 PreToolUse/PostToolUse hooks 实时捕获工具使用模式（100% 可靠）
+- ✅ **置信度系统**：0.3-0.9 加权评分，随使用自动调整
+- ✅ **完整中文支持**：所有文档已翻译为中文（混合风格：关键术语保留英文，说明用中文）
+  - SKILL.md（完整翻译）
+  - observer.md（完整翻译）
+  - observe.sh（注释中文化）
+  - config.json（添加中文注释）
+- ✅ **Observer Agent**：后台分析进程，使用 Haiku 模型自动创建本能
+- ✅ **本能管理工具**：instinct-cli.py 支持查看、导出、导入、演化本能
+- ✅ **团队协作**：导出/导入本能，分享团队经验
+
+#### quick-commit 功能增强
+- ✅ **Maven Spotless 智能格式化**：
+  - 先执行 `mvn spotless:check` 检查格式
+  - 仅在检查失败时执行 `mvn spotless:apply` 格式化
+  - 减少不必要的格式化操作
+  - 格式化失败可选择跳过或取消提交
+- ✅ **CHANGELOG 自动更新**：
+  - 检测项目根目录的 CHANGELOG.md
+  - 从 Conventional Commits 自动生成条目
+  - 支持 Keep a Changelog 格式
+  - Type 映射：feat→Added, fix→Fixed, refactor→Changed
+  - 格式：`- {emoji} {subject} ({scope})`
+  - 自动添加到 `## [Unreleased]` 部分
+  - 更新失败不影响 Git 提交
+- ✅ **Context 检测增强**：
+  - 新增 `CHANGELOG exists` 检测
+  - 新增 `Maven Spotless configured` 检测
+
+### Changed - self-assistant-plugin
+
+#### Hooks 配置优化
+- ✅ **PreToolUse Hook**：新增 continuous-learning-v2 观察（observe.sh pre）
+- ✅ **PostToolUse Hook**：新增 continuous-learning-v2 观察（observe.sh post）
+- ✅ **Stop Hook**：新增 quick-commit 执行完成通知
+
+#### 文档更新
+- ✅ **README.md**：更新插件功能说明，添加持续学习系统章节
+- ✅ **持续学习说明**：添加工作流程、使用时机、配置方法
+- ✅ **版本号**：从 1.0.0 升级到 1.1.0
+
+### Technical
+
+#### 持续学习工作流程
+```
+会话活动
+    ↓
+Hooks 捕获（PreToolUse/PostToolUse）
+    ↓
+observations.jsonl（存储观察记录）
+    ↓
+Observer Agent 分析（可选，后台运行）
+    ↓
+instincts/personal/（自动创建本能）
+    ↓
+/evolve 命令（演化为技能）
+```
+
+#### 文件结构
+```
+~/.claude/homunculus/
+├── observations.jsonl          # 观察记录
+├── instincts/
+│   ├── personal/              # 自动学习的本能
+│   └── inherited/             # 从他人导入的本能
+└── evolved/
+    ├── agents/                # 演化的代理
+    ├── skills/                # 演化的技能
+    └── commands/              # 演化的命令
+```
+
 ## [1.0.1] - 2026-02-02
 
 ### Changed - self-assistant-plugin
