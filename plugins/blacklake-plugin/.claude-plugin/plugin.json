@@ -1,7 +1,7 @@
 {
   "name": "blacklake-plugin",
   "description": "Blacklake internal operations assistant plugin with agents and skills for workflow troubleshooting, connector configuration, platform analytics, and database operations",
-  "version": "1.0.9",
+  "version": "1.0.10",
   "author": {
     "name": "Blacklake Team"
   },
@@ -9,6 +9,13 @@
     "op": {
       "type": "http",
       "url": "https://op-mcp-test.blacklake.tech/mcp"
+    },
+    "mongo-feature": {
+      "command": "npx",
+      "args": ["-y", "mongodb-mcp-server@latest", "--readOnly"],
+      "env": {
+        "MDB_MCP_CONNECTION_STRING": "mongodb://object_project_user:ntQDEoQZq1v6_@10.83.10.45:27017/object_project_feature?authMechanism=DEFAULT&authSource=object_project_feature"
+      }
     }
   }
 }

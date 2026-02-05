@@ -176,7 +176,7 @@ Claude 自动执行:
 
 | 插件 | 版本 | 功能概述 |
 |------|------|----------|
-| **blacklake-plugin** | v1.0.9 | Blacklake 内部运维助手 - 工作流排查、连接器配置、平台数据分析 |
+| **blacklake-plugin** | v1.0.10 | Blacklake 内部运维助手 - 工作流排查、连接器配置、平台数据分析 |
 | **self-assistant-plugin** | v1.0.0 | 个人效率助手 - Git 工作流优化和代码审查 |
 | **coder-beta-plugin** | v1.0.4 | Beta 开发插件 - 多种前端框架开发支持 |
 | **coder-flow-plugin** | v1.0.4 | 流程开发插件 - 系统集成架构设计与 Java 开发 |
@@ -213,6 +213,8 @@ Claude 自动执行:
 | `db-user` | 👤 用户库查询 (v3_user) - 租户和组织信息查询 |
 | `db-e-report` | 📈 报表库查询 (v3_e-report) - 数据分析告警配置查询 |
 | `es-log` | 📊 ES 日志操作 - 支持日志查询、写入、删除，支持线上数据造数到测试环境 |
+| `es-access-log` | 🔍 HTTP 访问日志只读查询 - Trace 链路追踪、关键字搜索、服务/时间过滤 |
+| `mongo-object` | 🗄️ MongoDB 数据库查询 - object_project_feature 只读查询支持 |
 
 **核心 MCP 工具**:
 - `exec_sql` - 执行 SQL 查询

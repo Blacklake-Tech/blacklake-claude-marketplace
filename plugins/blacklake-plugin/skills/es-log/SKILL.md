@@ -5,6 +5,31 @@ description: ES 日志查询、写入和删除能力，支持接口日志、外�
 
 # ES 日志查询和写入
 
+## 【使用场景说明】
+
+**本 skill 仅用于以下 4 种业务日志**的查询、写入和删除：
+- **接口日志**：`http-access-log-{env}-openapi-domain-{env}-*`（查询 openapi-domain 的 API 调用记录）
+- **外部接口日志**：`external-access-log-{env}-*`（查询第三方接口调用记录）
+- **事件日志**：`event-retry-log-{env}-openapi-domain-{env}-*`（查询业务事件触发记录）
+- **中间表接口日志**：`mybatis-sql-log-{env}-integration-*`（查询中间表 SQL 执行记录）
+
+**如果用户只是想查日志、排查问题、追踪 Jaeger 链路，请使用 `es-access-log` skill**。
+
+**本 skill 的典型使用场景**：
+- 造数据：从生产环境复制接口日志/事件日志到 feature 环境
+- 删除测试环境的测试数据
+- 修改测试数据的执行时间以触发轮询
+
+**常见场景对应**：
+
+| 用户需求 | 使用的 Skill |
+|---------|-------------|
+| "查一下日志" / "帮我看下这个接口的日志" | es-access-log |
+| "根据 Jaeger URL 查链路" | es-access-log |
+| "帮我造一条接口日志到 feature" | es-log（本 skill） |
+| "查一下事件日志" / "查外部接口日志" | es-log（本 skill） |
+| "删除 feature 环境的这条日志" | es-log（本 skill） |
+
 ## 【查询工作流程】
 
 ### 1. 确定查询目标和环境
