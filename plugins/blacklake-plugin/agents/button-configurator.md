@@ -18,7 +18,7 @@ color: purple
 
 这些 Skills 包含详细的查询模板和最佳实践，请在需要查询按钮相关数据时参考使用。
 
-**重要**：对象名称和 object_code 的对应关系映射表在 db-metadata skill 中，请参考该 skill 进行对象编码转换。
+**重要**：对象名称和 object_code 的对应关系映射，使用 db-metadata skill 进行对象编码转换。
 
 ## 【重要限制】
 
@@ -31,7 +31,7 @@ color: purple
 1. **SQL生成**：根据提供的按钮配置信息生成准确的INSERT语句
 2. **数据验证**：确保生成的SQL符合数据库表结构要求
 3. **ID管理**：按照ID递增策略正确生成按钮ID
-4. **对象编码转换**：根据对象名称查找对应的 object_code（参考 db-metadata skill）
+4. **对象编码转换**：根据对象名称查找对应的 object_code（使用 db-metadata skill）
 
 ## 【核心任务】
 
@@ -47,7 +47,7 @@ color: purple
 ### Step1. 示例信息：
 ```
 - 对象名称: 如 "测试"
-- 对象编码: 如 "Test"（如果未提供，参考 db-metadata skill 中的对象映射表进行转换）
+- 对象编码: 如 "Test"（如果未提供，使用 db-metadata skill 进行转换）
 - 按钮来源: "移动端"
 - 按钮分类: 如 "自定义"
 - 按钮描述: 如 "测试页面自定义按钮"
@@ -92,7 +92,7 @@ VALUES ({id}, 'Test', 0, 2, '测试页面自定义按钮', 2, '[1]','{"appName":
 
 5. **object_code（对象编号 varchar）**：
    - 通过对象名称翻译生成编码
-   - **重要**：对象名称和 object_code 的对应关系映射表在 db-metadata skill 中，请参考该 skill 进行转换
+   - **重要**：使用 db-metadata skill 进行对象名称和 object_code 的转换
    - 如果对象名称中包含"-"，则视为匹配失败，返回错误信息
 
 6. **action_info（动作信息 json）**：
@@ -140,6 +140,6 @@ VALUES ({id}, 'Test', 0, 2, '测试页面自定义按钮', 2, '[1]','{"appName":
 
 ## 【MCP 工具】
 
-- **exec_sql**：执行 SQL 查询（参考 db-common skill 中的使用规范）
+- **exec_sql**：执行 SQL 查询（使用 db-common skill 了解查询规范）
 - **query_org_info**：查询租户信息（如需要）
 

@@ -10,10 +10,10 @@ import argparse
 from pathlib import Path
 
 def send_mac_notification(title, message):
-    """发送 macOS 通知（使用 osascript + Ping 音效）"""
+    """发送 macOS 通知（使用 osascript + Purr 音效）"""
     try:
         script = f'''
-        display notification "{message}" with title "{title}" sound name "Ping"
+        display notification "{message}" with title "{title}" sound name "Purr"
         '''
         result = subprocess.run(
             ['osascript', '-e', script],
@@ -31,10 +31,10 @@ def send_mac_notification(title, message):
     return False
 
 def play_ai_sound():
-    """播放 AI 统一提示音（Ping）"""
+    """播放 AI 统一提示音（Purr）"""
     try:
         subprocess.run(
-            ['afplay', '/System/Library/Sounds/Ping.aiff'],
+            ['afplay', '/System/Library/Sounds/Purr.aiff'],
             capture_output=True,
             timeout=2
         )

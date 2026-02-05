@@ -35,7 +35,7 @@ color: orange
 1. **JSON生成**：根据提供的业务信息生成准确的事件配置JSON
 2. **字段转换**：将业务字段结构转化为标准JSON格式
 3. **数据验证**：确保生成的JSON符合业务事件规范要求
-4. **SQL查询**：使用 `exec_sql` 工具查询事件相关数据（参考 db-metadata skill）
+4. **SQL查询**：使用 `exec_sql` 工具查询事件相关数据（使用 db-metadata skill 查询）
 5. **SQL生成**：根据查询结果生成事件配置的插入语句
 
 ## 【核心任务】
@@ -53,7 +53,7 @@ color: orange
 
 基于event_id查询现有事件配置数据，生成插入语句，包含：
 
-1. **数据查询** - 使用SQL工具查询事件相关表数据（参考 db-metadata skill 中的查询模板）
+1. **数据查询** - 使用 db-metadata skill 查询事件相关表数据
 2. **SQL生成** - 根据查询结果生成INSERT语句
 3. **字段过滤** - 排除系统字段（pk_id、created_at、updated_at等）
 4. **注释增强** - 在注释中标注时间信息，增加可读性
@@ -132,19 +132,19 @@ color: orange
 
 ### 查询SQL模板：
 
-**重要**：以下查询模板在 db-metadata skill 中有详细说明，请参考该 skill 获取完整的查询模板和表结构信息。
+**重要**：使用 db-metadata skill 查询事件相关数据。
 
 #### 1. 事件源转发配置
-参考 db-metadata skill 中的查询模板
+使用 db-metadata skill 查询
 
 #### 2. 事件配置
-参考 db-metadata skill 中的查询模板
+使用 db-metadata skill 查询
 
 #### 3. 事件字段配置
-参考 db-metadata skill 中的查询模板
+使用 db-metadata skill 查询
 
 #### 4. 事件字段类型配置
-参考 db-metadata skill 中的查询模板
+使用 db-metadata skill 查询
 
 ### SQL生成规则：
 
@@ -178,7 +178,7 @@ VALUES
 ```
 
 4. **生成流程**：
-   - Step 1: 使用工具执行查询SQL（参考 db-metadata skill 中的查询模板）
+   - Step 1: 使用 db-metadata skill 执行查询
    - Step 2: 分析查询结果
    - Step 3: 生成对应的INSERT语句（按格式要求）
    - Step 4: 添加中文注释和时间标注
@@ -186,5 +186,5 @@ VALUES
 
 ## 【MCP 工具】
 
-- **exec_sql**：执行 SQL 查询（参考 db-common skill 和 db-metadata skill 中的使用规范）
+- **exec_sql**：执行 SQL 查询（使用 db-common skill 和 db-metadata skill 了解查询规范）
 

@@ -176,16 +176,16 @@ Claude 自动执行:
 
 | 插件 | 版本 | 功能概述 |
 |------|------|----------|
-| **blacklake-plugin** | v1.0.10 | Blacklake 内部运维助手 - 工作流排查、连接器配置、平台数据分析 |
-| **self-assistant-plugin** | v1.0.0 | 个人效率助手 - Git 工作流优化和代码审查 |
-| **coder-beta-plugin** | v1.0.4 | Beta 开发插件 - 多种前端框架开发支持 |
-| **coder-flow-plugin** | v1.0.4 | 流程开发插件 - 系统集成架构设计与 Java 开发 |
-| **coder-web-plugin** | v1.0.4 | Web 开发插件 - React 应用开发专家 |
-| **op-plugin** | v1.0.4 | OP 平台插件 - 工作流、连接器、事件和数据库操作 |
-| **mcp-plugin** | v1.0.4 | MCP 服务配置插件 - 为其他插件提供统一的 MCP 服务 |
+| **blacklake-plugin** | v1.0.13 | Blacklake 内部运维助手 - 工作流排查、连接器配置、平台数据分析 |
+| **self-assistant-plugin** | v1.1.0 | 个人效率助手 - Git 工作流优化和代码审查 |
+| **coder-beta-plugin** | v1.1.0 | Beta 开发插件 - 多种前端框架开发支持 |
+| **coder-flow-plugin** | v1.1.0 | 流程开发插件 - 系统集成架构设计与 Java 开发 |
+| **coder-web-plugin** | v1.1.0 | Web 开发插件 - React 应用开发专家 |
+| **op-plugin** | v1.1.0 | OP 平台插件 - 工作流、连接器、事件和数据库操作 |
+| **mcp-plugin** | v1.1.0 | MCP 服务配置插件 - 为其他插件提供统一的 MCP 服务 |
 
 <details>
-<summary><b>📦 blacklake-plugin (v1.0.9) - Blacklake 内部运维助手</b></summary>
+<summary><b>📦 blacklake-plugin (v1.0.13) - Blacklake 内部运维助手</b></summary>
 
 **专注于工作流问题排查、连接器配置、平台数据分析和数据库操作**
 
@@ -203,7 +203,7 @@ Claude 自动执行:
 | `log-analyst` | 📝 ES 日志分析专家 - 日志查询、生产数据造数和时间修改 |
 | `op-connector` | 🔌 连接器配置专家 (备用) - 同 connector-registrar 功能 |
 
-**Skills (6个)**:
+**Skills (8个)**:
 
 | Skill | 功能描述 |
 |-------|----------|
@@ -248,11 +248,13 @@ Claude 自动执行:
 | `/normalize-commits` | 🔧 规范化提交历史 - 合并重复提交 + 改写不规范提交为标准格式 |
 | `/code-review` | 👀 PR 代码审查 - 多 Agent 并行审查，提供专业的代码质量反馈 |
 
-**Skills (2个)**:
+**Skills (4个)**:
 
 | Skill | 功能描述 |
 |-------|----------|
-| `git-workflow` | 📚 Git 工作流知识库 - Conventional Commits 规范、Type/Scope 推断规则、Rebase 操作指南 |
+| `quick-commit` | 🚀 智能快速提交 - 自动推断 type、scope 和 subject，支持 Maven Spotless 格式化、CHANGELOG 自动更新 |
+| `normalize-commits` | 🔧 规范化提交历史 - 合并重复提交并改写为 Conventional Commits 格式（支持 5-200 个提交）|
+| `skill-creator` | 📝 技能创建指南 - 创建或更新技能以扩展 Claude 能力（优先使用）|
 | `continuous-learning-v2` | 🧠 **持续学习系统（中文版）** - 基于本能(Instinct)的自我学习架构，实时观察会话并自动创建可复用的经验 |
 
 **Hooks (6个)** - 自动安全防护、智能提醒和持续学习:
@@ -325,7 +327,7 @@ Claude 自动执行:
 </details>
 
 <details>
-<summary><b>📦 coder-beta-plugin (v1.0.4) - Beta 开发插件</b></summary>
+<summary><b>📦 coder-beta-plugin (v1.1.0) - Beta 开发插件</b></summary>
 
 **提供多种前端框架的开发支持**
 
@@ -358,7 +360,7 @@ Claude 自动执行:
 </details>
 
 <details>
-<summary><b>📦 coder-flow-plugin (v1.0.4) - 流程开发插件</b></summary>
+<summary><b>📦 coder-flow-plugin (v1.1.0) - 流程开发插件</b></summary>
 
 **系统集成架构设计与 Java 开发**
 
@@ -377,7 +379,7 @@ Claude 自动执行:
 </details>
 
 <details>
-<summary><b>📦 coder-web-plugin (v1.0.4) - Web 开发插件</b></summary>
+<summary><b>📦 coder-web-plugin (v1.1.0) - Web 开发插件</b></summary>
 
 **React 应用开发专家**
 
@@ -387,11 +389,16 @@ Claude 自动执行:
 |-------|----------|
 | `frontend-react` | ⚛️ React 应用开发专家 - React 18+ (Hooks)、ES Modules、内联样式/CSS Modules |
 
-**Skills (1个)**:
+**Skills (6个)**:
 
 | Skill | 功能描述 |
 |-------|----------|
-| `web-build` | 🏗️ 通用 Web 构建工具 - 自动检测项目类型并执行构建 |
+| `init-project-1` | 🎨 项目初始化 v1 - 根据模板和对象元数据生成新项目（支持自定义对象、工单、物料）|
+| `init-project-2` | 🎨 项目初始化 v2 - 根据模板初始化前端项目，自动生成完整 CRUD 应用 |
+| `init-project-3` | 🎨 项目初始化 v3 - 从 GitHub 克隆项目模板并自动配置（支持多种模板）|
+| `object-metadata` | 📋 对象元数据查询 - 根据对象 code/名称/id 查询对象元数据 |
+| `db-user` | 👤 用户库查询 - 查询租户和组织信息（v3_user 数据库）|
+| `page-modify-1` | ✏️ 页面字段修改 - React 页面字段修改专家，自动定位并修改字段配置 |
 
 **包含模板**:
 - mes-dashboard
@@ -401,7 +408,7 @@ Claude 自动执行:
 </details>
 
 <details>
-<summary><b>📦 op-plugin (v1.0.4) - OP 平台插件</b></summary>
+<summary><b>📦 op-plugin (v1.1.0) - OP 平台插件</b></summary>
 
 **提供工作流、连接器、事件和数据库操作**
 
@@ -429,7 +436,7 @@ Claude 自动执行:
 </details>
 
 <details>
-<summary><b>📦 mcp-plugin (v1.0.4) - MCP 服务配置插件</b></summary>
+<summary><b>📦 mcp-plugin (v1.1.0) - MCP 服务配置插件</b></summary>
 
 **为 OP 平台提供共享的 MCP 服务配置**
 

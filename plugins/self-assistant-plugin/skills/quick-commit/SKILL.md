@@ -1,6 +1,6 @@
 ---
 name: quick-commit
-description: 智能生成符合 Conventional Commits 规范的提交信息并提交。自动推断 type、scope 和 subject，或使用自定义消息（带格式验证）。支持版本号自动升级、Maven Spotless 代码格式化（先检查后格式化）、CHANGELOG.md 自动更新（Keep a Changelog 格式）、自动推送到远程。使用时机：(1) 需要快速提交代码，(2) 需要符合规范的提交消息，(3) 需要同时升级版本号并提交，(4) 需要格式化后提交，(5) 需要自动更新 CHANGELOG，(6) 需要提交后推送或合并到 feature 分支。触发词：quick-commit、快速提交、升级版本后提交、格式化后提交。
+description: 智能生成符合 Conventional Commits 规范的提交信息并提交。自动推断 type、scope 和 subject，或使用自定义消息（带格式验证）。支持 Maven Spotless 代码格式化（先检查后格式化）、CHANGELOG.md 自动更新（Keep a Changelog 格式）、自动推送到远程。使用时机：(1) 需要快速提交代码，(2) 需要符合规范的提交消息，(3) 需要格式化后提交，(4) 需要自动更新 CHANGELOG，(5) 需要提交后推送或合并到 feature 分支。触发词：quick-commit、快速提交、格式化后提交。
 argument-hint: [optional custom message]
 allowed-tools: Bash(git *), AskQuestion, Edit
 model: haiku
@@ -75,65 +75,16 @@ color: green
      - 不符合则提示用户修正并退出
    - 如果未提供参数：继续自动生成流程
 
-1.5. **版本号升级（自动执行）**：
-
-   **执行流程**：
-
-   1. **动态发现版本文件**：
-      - 从 Context 的 `Changed files` 获取所有变更文件
-      - 对每个变更文件，向上查找最近的版本文件（最多向上 5 层）
-      - 支持的版本文件（按优先级）：
-        * `.claude-plugin/plugin.json`
-        * `plugin.json`
-        * `package.json`
-        * `pom.xml`
-        * `pyproject.toml`
-        * `Cargo.toml`
-        * `VERSION`
-      - 如果没有检测到任何版本文件，静默跳过此步骤
-
-   2. **版本文件分组**：
-      - 按找到的版本文件对变更文件分组
-      - 输出检测结果：
-        ```
-        检测到 N 个模块需要升级版本：
-        
-        📦 path/to/plugin.json
-           当前版本: v1.0.11
-           变更文件: 3 个
-        ```
-
-   3. **用户确认**：
-      - 使用 `AskQuestion` 询问是否升级
-      - 选项：
-        * 是，升级所有检测到的版本文件（推荐）
-        * 否，跳过版本升级
-
-   4. **批量升级**：
-      - 对每个版本文件：
-        * 读取文件内容
-        * 提取当前版本号（正则：`"version":\s*"(\d+\.\d+\.\d+)"` 或 `<version>(\d+\.\d+\.\d+)</version>` 或 `version\s*=\s*"(\d+\.\d+\.\d+)"`）
-        * 升级最低位：`x.y.z → x.y.(z+1)`
-        * 使用 `Edit` 工具更新
-        * `git add <version_file>`
-        * 输出：`📦 版本升级：1.0.11 → 1.0.12 (path/to/plugin.json)`
-
-   **注意事项**：
-   - 版本号必须是标准的三位格式 `x.y.z`
-   - 升级后自动暂存，无需用户手动 `git add`
-   - 如果同一个版本文件被多个变更文件引用，只升级一次
-   - 如果没有检测到版本文件，静默跳过，不影响提交流程
-
-2. **检查并自动暂存变更**：
+1.5. **检查并自动暂存变更**：
    - 检查是否有任何未提交的变更（暂存区 + 工作区）
    - 如果暂存区和工作区都为空：提示"无变更需要提交"并退出
    - 如果有任何未暂存的变更（工作区有变更或未跟踪文件）：
      - 输出进度提示：`📦 正在暂存所有变更...`
      - 自动执行 `git add .`（暂存所有变更，包括新文件）
      - 输出完成提示：`✅ 已暂存 {文件数} 个文件`
-   - 继续步骤 2.5
+   - 继续步骤 1.6
 
-2.5. **Maven Spotless 代码格式化（条件执行）**：
+1.6. **Maven Spotless 代码格式化（条件执行）**：
 
    **检测条件**（动态检测，不依赖 Context）：
    1. 使用 Read 工具检查项目根目录是否存在 `pom.xml`
@@ -153,7 +104,7 @@ color: green
         ```
         ✅ 代码格式检查：已符合规范，无需格式化
         ```
-        跳过格式化，继续步骤 2.6
+        跳过格式化，继续步骤 1.7
 
       - **如果检查失败**（exit code 非 0）：
         ```
@@ -174,7 +125,7 @@ color: green
    - 如果格式化耗时较长，会显示进度提示
    - 如果项目未配置 Spotless，此步骤自动跳过
 
-2.6. **CHANGELOG 自动更新（条件执行）**：
+1.7. **CHANGELOG 自动更新（条件执行）**：
 
    **检测条件**（动态检测，不依赖 Context）：
    - 使用 Read 工具检查项目根目录是否存在 `CHANGELOG.md`
@@ -260,68 +211,56 @@ color: green
    - 如果提交消息无法解析，提示用户但不中断提交流程
    - CHANGELOG 更新失败不影响 Git 提交（记录警告即可）
 
-2.7. **README 版本号更新（条件执行）**：
+2. **分析变更并生成提交消息**（如果未提供自定义消息）：
 
-   **触发条件**：
-   - 步骤 1.5 成功升级了版本号
-   - 项目根目录存在 README.md
+   **分析策略**：
+   - 读取 Context 中的 `Staged diff details`
+   - 分析文件路径、变更类型、代码内容
+   - 推断 type、scope 和 subject
+   - 输出生成的提交消息（带格式化显示）
+   - 继续步骤 3
 
-   **执行流程**：
-
-   1. 使用 `AskQuestion` 询问用户：
-      ```
-      检测到版本号已升级，是否同步更新 README.md？
-      
-      选项：
-      □ 是，自动更新 README 中的版本号
-      □ 否，跳过 README 更新
-      ```
-
-   2. 如果用户选择"是"：
-      - 读取 README.md 内容
-      - 对每个升级的版本文件，查找对应的版本号引用
-      - 使用正则匹配：
-        * 徽章：`version-(\d+\.\d+\.\d+)`
-        * 表格：`\| \*\*{name}\*\* \| v(\d+\.\d+\.\d+) \|`
-      - 使用 `StrReplace` 替换旧版本号为新版本号
-      - `git add README.md`
-      - 输出：`📝 README 已更新：{name} v{old} → v{new}`
-
-   3. 如果用户选择"否"：
-      - 跳过此步骤
-      - 输出：`ℹ️ 已跳过 README 更新`
-
-   **注意事项**：
-   - README 更新失败不影响 Git 提交
-   - 仅更新检测到的版本号，不修改其他内容
-   - 如果 README 中没有找到版本号引用，提示用户但不报错
-
-3. **如果是自动生成模式，分析变更推断 type**：
+3. **推断 type**：
    - 新增文件/功能 → `feat`
    - 关键词（fix/bug/修复）→ `fix`
    - 重构/重命名 → `refactor`
    - 文档/测试/依赖/CI → 对应 type
    - 详细规则见 [references/commit-types.md](references/commit-types.md)
+   - 如果无法明确判断，默认使用 `chore`
+   - 继续步骤 4
 
-4. **如果是自动生成模式，推断 scope**：从文件路径提取模块名（api/ui/plugin/config 等）
+4. **推断 scope**：
+   - 从文件路径提取模块名（api/ui/plugin/config 等）
+   - 如果无法明确判断，省略 scope
+   - 继续步骤 5
 
-5. **如果是自动生成模式，生成 subject**：
+5. **生成 subject**：
    - 祈使语气、不超过 50 字符、首字母小写（英文）、无句号
    - 中文优先（如果项目使用中文）
+   - 输出生成的提交消息
+   - 继续步骤 6
 
-6. **格式**：`<type>(<scope>): <subject>`
-   - 更多示例见 [references/examples.md](references/examples.md)
+6. **执行提交**：
+   - 使用生成的提交消息执行 `git commit`
+   - 添加 Co-Authored-By（如果需要）
+   - 输出提交成功信息（包含 commit hash）
+   - 继续步骤 7
 
-7. **提交并输出结果**
-
-8. **询问是否推送到远程**：
+7. **推送到远程**（主动询问）：
    - 提交成功后,使用 AskQuestion 主动询问用户是否推送到远程
    - 根据 Context 中的 Remote count 智能处理:
      - 0 个远程: 提示未配置远程仓库
      - 1 个远程: 直接推送到该远程
      - 多个远程: 让用户选择推送目标
+   - 如果用户选择"否"，结束流程
+   - 如果用户选择"是"，继续步骤 8
 
-9. **合并到 feature 分支（可选）**：
+8. **执行推送**：
+   - 执行 `git push` 或 `git push -u origin <branch>`
+   - 输出推送成功信息
+   - 继续步骤 9（如果需要）
+
+9. **合并到 feature 分支**（可选，需明确指定）：
    - **触发条件**：仅在用户明确提到以下关键词时执行
      - "合并到 feature"
      - "merge to feature"

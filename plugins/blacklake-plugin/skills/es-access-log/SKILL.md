@@ -37,10 +37,20 @@ description: HTTP 访问日志只读查询，支持 Trace 链路追踪、关键�
 ### 1. 确定查询场景和环境
 
 **选择查询场景**：
-- Trace 链路追踪：根据 Jaeger Trace URL 查询整个调用链路
+- **Trace 链路追踪**（最重要）：根据 Jaeger Trace URL 查询整个调用链路
+  - **org_id 处理**：直接查询，无需提前指定 org_id
+  - 查询后从结果的 `x-org-id` 字段提取租户 ID
+  - 使用 db-user skill 查询租户信息展示给用户
 - 关键信息搜索：根据请求/响应内容关键字查找日志
 - 服务/时间过滤：按服务名、接口路径、状态码、时间范围查询
 - 精确查询：根据 uuid 或文档 ID 精确查找
+
+**org_id 参数说明**：
+- **Trace 链路追踪场景**：不需要提前指定 org_id，查询后自动从日志中提取并查询租户信息
+- **其他查询场景**：org_id 为可选参数
+  - 如果用户未提供，主动询问是否需要指定租户
+  - 选项：a) 指定租户（需要工厂名称或 org_id）  b) 不指定，查询所有租户数据
+  - 查询后如果结果包含 `x-org-id`，使用 db-user skill 查询租户信息展示
 
 **选择查询环境**：
 - 阿里生产/预发（prod-ali/pre）：查询阿里云线上和预发环境日志
@@ -169,6 +179,11 @@ http://jaeger.ali-test.blacklake.tech/trace/{trace_id}?uiFind={span_id}
 
 ### 场景1：Trace 链路追踪（最常用）
 
+**重要说明**：
+- Trace 链路追踪**不需要提前指定 org_id**
+- 查询后从日志的 `x-org-id` 字段提取租户 ID
+- 使用 db-user skill 查询租户信息并展示给用户
+
 **步骤1：提取 Trace ID**
 
 从 `response_header.X-Jaeger-Trace-Url` 中提取 trace ID：
@@ -230,6 +245,11 @@ curl --location 'http://{kibana_host}/api/console/proxy?path={index_pattern}/_se
 
 4. **Jaeger Trace URL**：提供可点击的链接
 
+5. **租户信息**（自动查询）：
+   - 从日志的 `x-org-id` 字段提取租户 ID
+   - 使用 db-user skill 查询租户信息
+   - 展示：租户名称、工厂编号等
+
 **展示格式示例**：
 
 ```
@@ -239,6 +259,7 @@ Trace ID: c81c7a6629b3a225e89f2c70b047351d
 环境: 阿里生产环境 (v3master)
 时间: 2026-02-05 07:50:23
 记录数: 11 条
+租户信息: 测试工厂 (org_id: 123456, code: TEST001)
 
 调用链路详情:
 

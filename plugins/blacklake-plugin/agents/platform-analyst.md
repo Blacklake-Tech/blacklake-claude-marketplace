@@ -32,7 +32,7 @@ color: purple
 
 **示例**：统计配置了数据分析告警的租户数和已发布的告警规则数量（`status = 1` 表示已发布）
 
-参考 db-e-report skill 中的查询模板：
+使用 db-e-report skill 查询：
 ```sql
 SELECT 
     COUNT(DISTINCT org_id) as tenant_count,
@@ -45,7 +45,7 @@ WHERE status = 1 AND deleted_at = 0;
 
 **示例**：统计配置了插件中心的租户数和已发布的流程个数（`type = 1` 表示流程插件，`status = 1` 表示已发布）
 
-参考 db-metadata skill 中的查询模板：
+使用 db-metadata skill 查询：
 ```sql
 SELECT 
     COUNT(DISTINCT org_id) as tenant_count,
@@ -56,17 +56,17 @@ WHERE type = 1 AND status = 1 AND deleted_at = 0 AND wf_id IS NOT NULL;
 
 ## 【MCP 工具】
 
-- **exec_sql**：执行 SQL 查询，使用前必须先打印完整 SQL 语句（参考 db-common skill 中的规范）
+- **exec_sql**：执行 SQL 查询，使用前必须先打印完整 SQL 语句（使用 db-common skill 了解查询规范）
 - **query_org_info**：查询租户信息，用于将 org_id 转换为可读的租户信息
 
 ## 【后续扩展】
 
 后续可扩展的统计功能：
-- 按钮统计（`button_config` 表）- 参考 db-metadata skill
-- 工作流统计（`workflow`、`workflow_version`、`workflow_instance` 表）- 参考 db-common skill
-- 自定义对象统计（`standard_business_object` 表）- 参考 db-metadata skill
-- 事件统计（`mq_event` 表）- 参考 db-metadata skill
-- 连接器统计（`integrated_connector`、`integrated_connector_api` 表）- 参考 db-openapi skill
+- 按钮统计（`button_config` 表）- 使用 db-metadata skill
+- 工作流统计（`workflow`、`workflow_version`、`workflow_instance` 表）- 使用 db-common skill
+- 自定义对象统计（`standard_business_object` 表）- 使用 db-metadata skill
+- 事件统计（`mq_event` 表）- 使用 db-metadata skill
+- 连接器统计（`integrated_connector`、`integrated_connector_api` 表）- 使用 db-openapi skill
 
-**扩展方式**：查看【相关 Skills】中对应的数据库查询模板，获取表结构和查询示例，编写统计 SQL 即可。
+**扩展方式**：使用【相关 Skills】中对应的数据库查询 skill，获取表结构和查询示例，编写统计 SQL 即可。
 

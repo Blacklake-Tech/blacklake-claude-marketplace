@@ -22,14 +22,18 @@ description: 查询 MongoDB 数据库的业务对象数据。目前仅支持 Fea
 
 **执行 MongoDB 查询前，必须按顺序完成以下步骤：**
 
-### TODO 1：获取租户信息
+### TODO 1：获取租户信息（可选）
 
 **判断**：用户是否已提供 org_id？
 - ✅ **已提供**：直接使用，记录 org_id = ______
-- ❌ **未提供**：
-  - [ ] 确认工厂名称或工厂编号
-  - [ ] 使用 `db-user` skill 查询租户信息
-  - [ ] 记录租户ID (org_id): ______
+- ❌ **未提供**：主动询问用户
+  - [ ] 是否需要指定租户？
+  - [ ] 选项：a) 指定租户（需要工厂名称或 org_id）  b) 不指定，查询所有租户数据
+  - [ ] 如果选择指定租户：
+    - 确认工厂名称或工厂编号
+    - 使用 db-user skill 查询租户信息
+    - 记录租户ID (org_id): ______
+  - [ ] 如果选择不指定：跳过此步骤，查询后使用 db-user skill 查询租户信息展示
 
 ### TODO 2：获取对象编码
 
@@ -130,8 +134,9 @@ filter: {"code": "xxx", "orgId": {org_id}}
 
 ## 【查询租户和对象信息】
 
-- **查询租户信息**：使用 `db-user` skill
-- **查询对象编码**：使用 `db-metadata` skill（参考 object-mapping-supplement.md）
+- **查询租户信息**：使用 db-user skill
+- **查询对象编码**：使用 db-metadata skill
+- **租户信息展示**：查询后默认使用 db-user skill 查询租户信息展示给用户
 
 ---
 
@@ -192,8 +197,11 @@ filter: {"code": "xxx", "orgId": {org_id}}
 ## 注意事项
 
 1. **必须先完成前置 TODO 步骤**，确定租户和对象信息后再查询
-2. **目前仅支持 Feature 环境**，数据库名固定为 `object_project_feature`
-3. 预制对象查询必须添加 `orgId` 过滤条件
-4. 只读模式，无法修改数据
-5. MongoDB ObjectId 格式：`{"_id": {"$oid": "xxx"}}`
-6. 如需查询其他环境，请联系管理员配置对应的 MCP Server
+2. **org_id 为可选参数**：
+   - 如果用户未提供，主动询问是否需要指定
+   - 查询后默认使用 db-user skill 查询租户信息展示
+3. **目前仅支持 Feature 环境**，数据库名固定为 `object_project_feature`
+4. 预制对象查询必须添加 `orgId` 过滤条件
+5. 只读模式，无法修改数据
+6. MongoDB ObjectId 格式：`{"_id": {"$oid": "xxx"}}`
+7. 如需查询其他环境，请联系管理员配置对应的 MCP Server

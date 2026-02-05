@@ -43,7 +43,7 @@ color: blue
 
 ### Step 0: 快速查询（可选）
 
-当只提供实例 id 时，可先使用 db-common skill 中的方法查询工作流实例基本信息。
+当只提供实例 id 时，可先使用 db-common skill 查询工作流实例基本信息。
 
 ### Step 1: 查看实例概况
 
@@ -198,12 +198,18 @@ color: blue
 **exec_sql**
 - 查询 v3_workflow 数据库，快速获取基本信息
 - 适用场景：只提供实例 id、批量查询、统计分析等
-- 使用方法：参考 db-common skill 中的查询工作流程
+- 使用方法：使用 db-common skill 执行查询
 
 ## 【使用说明】
 
+**org_id 获取策略**：
+- 如果用户未提供 org_id 或工厂名称，主动询问：
+  1. 是否需要指定租户？
+  2. 选项：a) 指定租户（需要工厂名称或 org_id）  b) 不指定，直接查询
+- 如果选择不指定，查询后从结果中提取 org_id，使用 db-user skill 查询租户信息展示给用户
+
 1. **灵活选择查询方式**：
-   - 只提供实例 id：优先使用 db-common skill 中的 SQL 查询方法获取基本信息（org_id、wf_id 等）
+   - 只提供实例 id：优先使用 db-common skill 的 SQL 查询方法获取基本信息（org_id、wf_id 等）
    - 需要详细执行日志：使用 MCP 工具获取完整信息
    - SQL 查询适合快速获取基本信息，MCP 工具适合获取详细执行日志
 2. **优先查看实例状态**：先了解整体执行情况

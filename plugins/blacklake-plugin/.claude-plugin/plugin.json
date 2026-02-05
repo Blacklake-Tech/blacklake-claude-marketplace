@@ -1,7 +1,7 @@
 {
   "name": "blacklake-plugin",
   "description": "Blacklake internal operations assistant plugin with agents and skills for workflow troubleshooting, connector configuration, platform analytics, and database operations",
-  "version": "1.0.12",
+  "version": "1.0.13",
   "author": {
     "name": "Blacklake Team"
   },
