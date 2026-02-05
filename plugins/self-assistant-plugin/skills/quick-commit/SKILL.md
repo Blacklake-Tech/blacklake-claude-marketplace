@@ -14,14 +14,11 @@ color: green
 - Staged diff details: !`git diff --cached`
 - Unstaged changes: !`git diff --stat`
 - Untracked files: !`git ls-files --others --exclude-standard | head -10`
+- Changed files: !`git diff --cached --name-only`
 - Current branch: !`git branch --show-current`
 - Feature branch: !`git branch --list feature`
 - Remote repositories: !`git remote -v`
 - Remote count: !`git remote | wc -l | tr -d ' '`
-- Package.json: !`find . -maxdepth 3 -name "package.json" 2>/dev/null | head -3`
-- Pom.xml: !`find . -maxdepth 3 -name "pom.xml" 2>/dev/null | head -3`
-- CHANGELOG exists: !`[ -f "CHANGELOG.md" ] && echo "YES" || echo "NO"`
-- Maven Spotless configured: !`[ -f "pom.xml" ] && grep -q "spotless-maven-plugin" pom.xml 2>/dev/null && command -v mvn >/dev/null 2>&1 && echo "YES" || echo "NO"`
 
 ## Your task
 
@@ -87,30 +84,49 @@ color: green
 
    **执行流程**：
 
-   1. **检测版本文件**：
-      - 从 Context 的 `Version files` 获取文件列表
+   1. **动态发现版本文件**：
+      - 从 Context 的 `Changed files` 获取所有变更文件
+      - 对每个变更文件，向上查找最近的版本文件（最多向上 5 层）
+      - 支持的版本文件（按优先级）：
+        * `.claude-plugin/plugin.json`
+        * `plugin.json`
+        * `package.json`
+        * `pom.xml`
+        * `pyproject.toml`
+        * `Cargo.toml`
+        * `VERSION`
       - 如果没有检测到任何版本文件，提示用户并跳过此步骤
 
-   2. **读取并升级版本号**：
-      - 读取文件内容，提取当前版本号（格式：x.y.z）
-      - **默认升级规则**：升级最低位 z，即 `x.y.z → x.y.(z+1)`
-      - 使用 `Edit` 工具更新文件中的版本号
-      - 输出提示：`📦 版本升级：{old_version} → {new_version}`
+   2. **版本文件分组**：
+      - 按找到的版本文件对变更文件分组
+      - 输出检测结果：
+        ```
+        检测到 N 个模块需要升级版本：
+        
+        📦 path/to/plugin.json
+           当前版本: v1.0.11
+           变更文件: 3 个
+        ```
 
-   3. **暂存版本文件**：
-      - 执行 `git add <version_file>`
-      - 继续正常的提交流程
+   3. **用户确认**：
+      - 使用 `AskQuestion` 询问是否升级
+      - 选项：
+        * 是，升级所有检测到的版本文件（推荐）
+        * 否，跳过版本升级
 
-   **支持的文件格式**：
-   - `package.json` / `plugin.json`：`"version": "x.y.z"`
-   - `pom.xml`：`<version>x.y.z</version>`（仅修改第一个 version 标签）
-   - `pyproject.toml` / `Cargo.toml`：`version = "x.y.z"`
-   - `VERSION`：纯文本 `x.y.z`
+   4. **批量升级**：
+      - 对每个版本文件：
+        * 读取文件内容
+        * 提取当前版本号（正则：`"version":\s*"(\d+\.\d+\.\d+)"` 或 `<version>(\d+\.\d+\.\d+)</version>` 或 `version\s*=\s*"(\d+\.\d+\.\d+)"`）
+        * 升级最低位：`x.y.z → x.y.(z+1)`
+        * 使用 `Edit` 工具更新
+        * `git add <version_file>`
+        * 输出：`📦 版本升级：1.0.11 → 1.0.12 (path/to/plugin.json)`
 
    **注意事项**：
-   - 如果检测到多个版本文件，优先处理 `package.json` 或 `plugin.json`
    - 版本号必须是标准的三位格式 `x.y.z`
    - 升级后自动暂存，无需用户手动 `git add`
+   - 如果同一个版本文件被多个变更文件引用，只升级一次
 
 2. **检查并自动暂存变更**：
    - 检查是否有任何未提交的变更（暂存区 + 工作区）
@@ -123,11 +139,11 @@ color: green
 
 2.5. **Maven Spotless 代码格式化（条件执行）**：
 
-   **仅在满足以下所有条件时执行**：
-   - Context 中 `Maven Spotless configured` 为 `YES`
-   - 即：项目根目录存在 `pom.xml`
-   - 且 `pom.xml` 配置了 `spotless-maven-plugin`
-   - 且系统中 `mvn` 命令可用
+   **检测条件**（动态检测，不依赖 Context）：
+   1. 使用 Read 工具检查项目根目录是否存在 `pom.xml`
+   2. 如果存在，读取内容检查是否包含 `spotless-maven-plugin`
+   3. 使用 Bash 检查 `mvn` 命令：`which mvn >/dev/null 2>&1 && echo "YES" || echo "NO"`
+   4. 仅当以上条件都满足时才执行格式化，否则跳过此步骤
 
    **执行策略：先检查后格式化**
 
@@ -164,17 +180,18 @@ color: green
 
 2.6. **CHANGELOG 自动更新（条件执行）**：
 
-   **仅在满足以下条件时执行**：
-   - Context 中 `CHANGELOG exists` 为 `YES`
-   - 即：项目根目录存在 `CHANGELOG.md` 文件
+   **检测条件**（动态检测，不依赖 Context）：
+   - 使用 Read 工具检查项目根目录是否存在 `CHANGELOG.md`
+   - 仅当文件存在时才执行更新，否则跳过此步骤
 
-   **执行策略：混合方案（Keep a Changelog 格式 + 从 Conventional Commits 自动生成）**
+   **执行策略：项目级别（Keep a Changelog 格式 + 从 Conventional Commits 自动生成）**
 
    1. 读取 CHANGELOG.md 内容
 
    2. 解析提交消息，提取 type、scope 和 subject：
       - 自动生成模式：从步骤 3-5 获取
       - 自定义消息模式：解析 `$ARGUMENTS`
+      - 格式：`type(scope): subject` 或 `type: subject`
 
    3. 根据 type 确定 CHANGELOG 分类：
       ```
@@ -190,14 +207,15 @@ color: green
       ```
 
    4. 在 `## [Unreleased]` 部分添加条目：
-      - 格式：`- {emoji} {subject} ({scope})`
+      - 格式：`- {emoji} {subject} [(scope)]`
       - emoji 映射：
         ```
         Added   → ✅
         Fixed   → 🐛
         Changed → ♻️
         ```
-      - 示例：`- ✅ 添加用户登录功能 (auth)`
+      - 示例（有 scope）：`- ✅ 添加用户登录功能 (auth)`
+      - 示例（无 scope）：`- ✅ 添加用户登录功能`
 
    5. 智能插入位置：
       - 如果 `[Unreleased]` 下已有对应的 `### Added/Fixed/Changed` 标题：
@@ -242,8 +260,45 @@ color: green
    **注意事项**：
    - 仅记录用户可见的变更（feat、fix、refactor、perf、docs）
    - 跳过技术性变更（test、build、ci、chore）
+   - **Scope 仅从提交消息提取，不从文件路径推断**
    - 如果提交消息无法解析，提示用户但不中断提交流程
    - CHANGELOG 更新失败不影响 Git 提交（记录警告即可）
+
+2.7. **README 版本号更新（条件执行）**：
+
+   **触发条件**：
+   - 步骤 1.5 成功升级了版本号
+   - 项目根目录存在 README.md
+
+   **执行流程**：
+
+   1. 使用 `AskQuestion` 询问用户：
+      ```
+      检测到版本号已升级，是否同步更新 README.md？
+      
+      选项：
+      □ 是，自动更新 README 中的版本号
+      □ 否，跳过 README 更新
+      ```
+
+   2. 如果用户选择"是"：
+      - 读取 README.md 内容
+      - 对每个升级的版本文件，查找对应的版本号引用
+      - 使用正则匹配：
+        * 徽章：`version-(\d+\.\d+\.\d+)`
+        * 表格：`\| \*\*{name}\*\* \| v(\d+\.\d+\.\d+) \|`
+      - 使用 `StrReplace` 替换旧版本号为新版本号
+      - `git add README.md`
+      - 输出：`📝 README 已更新：{name} v{old} → v{new}`
+
+   3. 如果用户选择"否"：
+      - 跳过此步骤
+      - 输出：`ℹ️ 已跳过 README 更新`
+
+   **注意事项**：
+   - README 更新失败不影响 Git 提交
+   - 仅更新检测到的版本号，不修改其他内容
+   - 如果 README 中没有找到版本号引用，提示用户但不报错
 
 3. **如果是自动生成模式，分析变更推断 type**：
    - 新增文件/功能 → `feat`

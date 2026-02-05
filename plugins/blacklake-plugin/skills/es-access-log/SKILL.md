@@ -71,6 +71,27 @@ description: HTTP 访问日志只读查询，支持 Trace 链路追踪、关键�
    - 展示 Trace URL（如果有）
    - 展示请求/响应关键信息
 
+### 默认查询参数
+
+**所有查询默认使用以下参数**（除非用户明确指定）：
+
+1. **时间范围**：最近 12 小时（`now-12h` 到 `now`）
+2. **返回条数**：20 条（Trace 链路追踪除外，保持 100 条以覆盖完整链路）
+
+**默认时间范围过滤**：
+```json
+{
+  "range": {
+    "@timestamp": {
+      "gte": "now-12h",
+      "lte": "now"
+    }
+  }
+}
+```
+
+> **注意**：生产环境索引较大时，建议进一步缩小时间范围以提升查询性能。
+
 ## 【环境配置】
 
 ### Kibana 地址和索引映射
@@ -187,6 +208,67 @@ curl --location 'http://{kibana_host}/api/console/proxy?path={index_pattern}/_se
 - 同一 trace ID 下的所有 HTTP 请求
 - 可以看到完整的调用链路和时序关系
 
+### Trace 链路分析（默认展示）
+
+查询 Trace 链路后，**默认进行以下分析**：
+
+1. **服务调用链路**：按时间顺序列出所有服务的调用关系
+2. **关键字段展示**（表格形式）：
+   - 序号
+   - 时间戳（`@timestamp`，格式化为北京时间）
+   - 服务名（`appid`，去掉环境后缀如 `-v3master`）
+   - 接口路径（`uri`）
+   - HTTP 方法（`method`）
+   - 状态码（`status`，200 显示 ✅，非 200 显示 ❌）
+   - UUID
+
+3. **异常接口详情**（对于状态码非 200 的请求）：
+   - 接口信息：服务名 → 接口路径
+   - 状态码
+   - 入参（`request_body`）：展示关键入参，JSON 格式化
+   - 出参/错误信息（`response_body`）：展示响应体或错误信息
+
+4. **Jaeger Trace URL**：提供可点击的链接
+
+**展示格式示例**：
+
+```
+Trace 链路查询结果
+
+Trace ID: c81c7a6629b3a225e89f2c70b047351d
+环境: 阿里生产环境 (v3master)
+时间: 2026-02-05 07:50:23
+记录数: 11 条
+
+调用链路详情:
+
+| # | 时间 | 服务 | 接口 | 方法 | 状态 |
+|---|------|------|------|------|------|
+| 1 | 07:50:23 | user-domain | /api/v1/verify_token | POST | 200 ✅ |
+| 2 | 07:50:23 | metadata-domain | /api/v1/plugin_center/_list | POST | 200 ✅ |
+| 3 | 07:50:23 | workflow-domain | /api/v1/workflow/exec/process | POST | 200 ✅ |
+| 4 | 07:50:23 | mfg-domain | /app/v1/progress_report/_progress_report | POST | 500 ❌ |
+
+异常接口详情:
+
+接口: mfg-domain → /app/v1/progress_report/_progress_report
+状态码: 500
+
+入参:
+{
+  "taskId": 1669412625694911,
+  "reportType": 2,
+  "processId": 1645604306213192,
+  ...
+}
+
+出参/错误信息:
+Internal Server Error
+
+Jaeger Trace URL:
+http://jaeger.ali-prod.blacklake.tech/trace/c81c7a6629b3a225e89f2c70b047351d
+```
+
 ### 场景2：按 UUID 精确查询
 
 ```bash
@@ -194,7 +276,7 @@ curl --location 'http://{kibana_host}/api/console/proxy?path={index_pattern}/_se
 --header 'kbn-xsrf: true' \
 --header 'Content-Type: application/json' \
 --data '{
-  "size": 10,
+  "size": 20,
   "query": {
     "term": { "uuid.keyword": "{uuid}" }
   }
@@ -213,9 +295,12 @@ curl --location 'http://{kibana_host}/api/console/proxy?path={index_pattern}/_se
 --header 'kbn-xsrf: true' \
 --header 'Content-Type: application/json' \
 --data '{
-  "size": 50,
+  "size": 20,
   "query": {
     "bool": {
+      "filter": [
+        { "range": { "@timestamp": { "gte": "now-12h", "lte": "now" } } }
+      ],
       "should": [
         { "match": { "request_body": "{keyword}" } },
         { "match": { "response_body": "{keyword}" } }
@@ -239,11 +324,20 @@ curl --location 'http://{kibana_host}/api/console/proxy?path={index_pattern}/_se
 --header 'kbn-xsrf: true' \
 --header 'Content-Type: application/json' \
 --data '{
-  "size": 50,
+  "size": 20,
   "query": {
-    "query_string": {
-      "query": "*{keyword}*",
-      "fields": ["request_body", "response_body"]
+    "bool": {
+      "filter": [
+        { "range": { "@timestamp": { "gte": "now-12h", "lte": "now" } } }
+      ],
+      "must": [
+        {
+          "query_string": {
+            "query": "*{keyword}*",
+            "fields": ["request_body", "response_body"]
+          }
+        }
+      ]
     }
   },
   "sort": [{"@timestamp": {"order": "desc"}}]
@@ -257,7 +351,7 @@ curl --location 'http://{kibana_host}/api/console/proxy?path={index_pattern}/_se
 --header 'kbn-xsrf: true' \
 --header 'Content-Type: application/json' \
 --data '{
-  "size": 100,
+  "size": 20,
   "query": {
     "bool": {
       "filter": [
@@ -265,8 +359,8 @@ curl --location 'http://{kibana_host}/api/console/proxy?path={index_pattern}/_se
         {
           "range": {
             "@timestamp": {
-              "gte": {start_time},
-              "lte": {end_time}
+              "gte": "now-12h",
+              "lte": "now"
             }
           }
         }
@@ -279,8 +373,7 @@ curl --location 'http://{kibana_host}/api/console/proxy?path={index_pattern}/_se
 
 **参数说明**：
 - `{appid}`：服务名称，如 `mfg-domain-v3feature`
-- `{start_time}`：开始时间（13位时间戳）
-- `{end_time}`：结束时间（13位时间戳）
+- 时间范围默认为最近 12 小时，可根据需要调整为具体时间戳
 
 ### 场景5：按接口路径+状态码查询
 
@@ -289,12 +382,13 @@ curl --location 'http://{kibana_host}/api/console/proxy?path={index_pattern}/_se
 --header 'kbn-xsrf: true' \
 --header 'Content-Type: application/json' \
 --data '{
-  "size": 100,
+  "size": 20,
   "query": {
     "bool": {
       "filter": [
         { "term": { "uri.keyword": "{uri}" } },
-        { "term": { "status": {status_code} } }
+        { "term": { "status": {status_code} } },
+        { "range": { "@timestamp": { "gte": "now-12h", "lte": "now" } } }
       ]
     }
   },
@@ -318,12 +412,13 @@ curl --location 'http://{kibana_host}/api/console/proxy?path={index_pattern}/_se
 --header 'kbn-xsrf: true' \
 --header 'Content-Type: application/json' \
 --data '{
-  "size": 100,
+  "size": 20,
   "query": {
     "bool": {
       "filter": [
         { "term": { "x-org-id": "{org_id}" } },
-        { "term": { "x-user-id": "{user_id}" } }
+        { "term": { "x-user-id": "{user_id}" } },
+        { "range": { "@timestamp": { "gte": "now-12h", "lte": "now" } } }
       ]
     }
   },
@@ -342,9 +437,14 @@ curl --location 'http://{kibana_host}/api/console/proxy?path={index_pattern}/_se
 --header 'kbn-xsrf: true' \
 --header 'Content-Type: application/json' \
 --data '{
-  "size": 100,
+  "size": 20,
   "query": {
-    "term": { "k8s_pod_name.keyword": "{pod_name}" }
+    "bool": {
+      "filter": [
+        { "term": { "k8s_pod_name.keyword": "{pod_name}" } },
+        { "range": { "@timestamp": { "gte": "now-12h", "lte": "now" } } }
+      ]
+    }
   },
   "sort": [{"@timestamp": {"order": "desc"}}]
 }'
@@ -360,16 +460,23 @@ curl --location 'http://{kibana_host}/api/console/proxy?path={index_pattern}/_se
 --header 'kbn-xsrf: true' \
 --header 'Content-Type: application/json' \
 --data '{
-  "size": 10,
-  "query": { "match_all": {} },
+  "size": 20,
+  "query": {
+    "range": {
+      "@timestamp": {
+        "gte": "now-12h",
+        "lte": "now"
+      }
+    }
+  },
   "sort": [{"@timestamp": {"order": "desc"}}]
 }'
 ```
 
 **参数说明**：
-- `match_all`：查询所有文档
+- 默认查询最近 12 小时的日志
 - `sort`：按时间降序排序（最新的在前）
-- `size`：返回记录数
+- `size`：默认返回 20 条记录
 
 ## 【查询技巧】
 

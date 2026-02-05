@@ -322,3 +322,169 @@ feat(auth): 添加用户登录功能
 ```
 
 **建议**：大多数情况使用简化模板即可，复杂变更可使用标准模板。
+
+## 版本管理场景
+
+### 场景 9：单体项目版本升级
+
+**项目结构**：
+```
+project/
+├── package.json (v1.0.0)
+├── src/
+│   └── index.ts
+└── CHANGELOG.md
+```
+
+**变更内容**：
+- 修改 `src/index.ts` 添加新功能
+
+**使用命令**：
+```bash
+/quick-commit 升级版本
+```
+
+**执行流程**：
+1. 检测到 `package.json` (v1.0.0)
+2. 询问用户是否升级版本
+3. 升级到 v1.0.1
+4. 生成提交消息：`feat(core): 添加新功能`
+5. 更新 CHANGELOG.md：
+   ```markdown
+   ## [Unreleased]
+   
+   ### Added
+   - ✅ 添加新功能 (core)
+   ```
+
+### 场景 10：Monorepo 多模块版本升级
+
+**项目结构**：
+```
+monorepo/
+├── packages/
+│   ├── core/
+│   │   ├── package.json (v2.0.0)
+│   │   └── src/index.ts
+│   └── utils/
+│       ├── package.json (v1.5.0)
+│       └── src/helper.ts
+└── CHANGELOG.md
+```
+
+**变更内容**：
+- 修改 `packages/core/src/index.ts`
+- 修改 `packages/utils/src/helper.ts`
+
+**使用命令**：
+```bash
+/quick-commit 升级版本
+```
+
+**执行流程**：
+1. 检测到 2 个 package.json：
+   - `packages/core/package.json` (v2.0.0)
+   - `packages/utils/package.json` (v1.5.0)
+2. 询问用户是否升级版本
+3. 批量升级：
+   - core: v2.0.0 → v2.0.1
+   - utils: v1.5.0 → v1.5.1
+4. 生成提交消息：`feat: 优化核心模块和工具函数`
+5. 更新 CHANGELOG.md（项目级别）：
+   ```markdown
+   ## [Unreleased]
+   
+   ### Added
+   - ✅ 优化核心模块和工具函数
+   ```
+
+### 场景 11：插件市场版本升级
+
+**项目结构**：
+```
+marketplace/
+├── plugins/
+│   ├── plugin-a/
+│   │   ├── .claude-plugin/plugin.json (v1.0.11)
+│   │   └── skills/db.md
+│   └── plugin-b/
+│       ├── .claude-plugin/plugin.json (v1.0.13)
+│       └── skills/api.md
+├── CHANGELOG.md
+└── README.md
+```
+
+**变更内容**：
+- 修改 `plugins/plugin-a/skills/db.md`
+- 修改 `plugins/plugin-b/skills/api.md`
+
+**使用命令**：
+```bash
+/quick-commit 升级版本
+```
+
+**执行流程**：
+1. 检测到 2 个 plugin.json：
+   - `plugins/plugin-a/.claude-plugin/plugin.json` (v1.0.11)
+   - `plugins/plugin-b/.claude-plugin/plugin.json` (v1.0.13)
+2. 询问用户是否升级版本
+3. 批量升级：
+   - plugin-a: v1.0.11 → v1.0.12
+   - plugin-b: v1.0.13 → v1.0.14
+4. 生成提交消息：`feat(skills): 优化数据库和接口技能`
+5. 更新 CHANGELOG.md（项目级别）：
+   ```markdown
+   ## [Unreleased]
+   
+   ### Added
+   - ✅ 优化数据库和接口技能 (skills)
+   ```
+6. 询问是否更新 README.md
+7. 如果选择"是"，更新 README 中的版本表格：
+   ```markdown
+   | **plugin-a** | v1.0.12 | 数据库操作插件 |
+   | **plugin-b** | v1.0.14 | 接口管理插件 |
+   ```
+
+### 场景 12：CHANGELOG 项目级别更新
+
+**当前 CHANGELOG 格式**（旧版，带插件后缀）：
+```markdown
+## [Unreleased]
+
+### Added - plugin-a
+- ✅ 新增数据库查询功能 (db)
+
+### Changed - plugin-b
+- ♻️ 优化接口性能 (api)
+```
+
+**新版格式**（项目级别，无插件后缀）：
+```markdown
+## [Unreleased]
+
+### Added
+- ✅ 新增数据库查询功能 (db)
+- ✅ 新增用户认证功能 (auth)
+
+### Changed
+- ♻️ 优化接口性能 (api)
+```
+
+**关键变化**：
+- ❌ 移除插件后缀（`- plugin-a`）
+- ✅ 统一项目级别记录
+- ✅ Scope 仅从提交消息提取（`feat(db): xxx`）
+- ✅ 不从文件路径推断 scope
+
+**示例提交**：
+```bash
+# 提交消息
+feat(auth): 新增用户认证功能
+
+# CHANGELOG 更新
+## [Unreleased]
+
+### Added
+- ✅ 新增用户认证功能 (auth)
+```
