@@ -8,14 +8,16 @@
   "mcpServers": {
     "op": {
       "type": "http",
-      "url": "https://op-mcp-test.blacklake.tech/mcp"
+      "url": "https://op-mcp-test.blacklake.tech/mcp",
+      "description": "Blacklake 运维 MCP 服务，用于工作流、组织和 API 查询"
     },
     "mongo-feature": {
       "command": "npx",
       "args": ["-y", "mongodb-mcp-server@latest", "--readOnly"],
       "env": {
         "MDB_MCP_CONNECTION_STRING": "mongodb://object_project_user:ntQDEoQZq1v6_@10.83.10.45:27017/object_project_feature?authMechanism=DEFAULT&authSource=object_project_feature"
-      }
+      },
+      "description": "⚠️ MongoDB 服务，仅用于查询 Feature 环境的业务对象实例数据。禁止用于工作流排查、元数据查询、租户查询，这些场景请使用 exec_sql"
     }
   }
 }

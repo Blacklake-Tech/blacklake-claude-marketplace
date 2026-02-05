@@ -7,26 +7,73 @@ description: 查询 MongoDB 数据库的业务对象数据。目前仅支持 Fea
 
 > **⚠️ 环境说明**：目前仅维护 **Feature 环境**，数据库为 `object_project_feature`。其他环境暂不支持。
 
+> **⚠️ 使用场景限制**：
+> - ✅ **适用场景**：查询业务对象的**实例数据**（如具体的生产工单、物料记录等）
+> - ❌ **不适用场景**：
+>   - 工作流排查（使用 `exec_sql` 查询 `v3_workflow` 数据库）
+>   - 元数据查询（使用 `db-metadata` skill）
+>   - 租户信息查询（使用 `db-user` skill）
+>   - 连接器配置查询（使用 `db-openapi` skill）
+>   - 日志分析（使用 `es-log` skill）
+>
+> **判断依据**：如果需要查询的是**业务单据的具体数据**（如"查询工单编号为 xxx 的详细信息"），使用本 skill；否则使用对应的 SQL 查询 skill。
+
 ## 【前置条件检查】
 
-**⚠️ 执行 MongoDB 查询前，必须先完成以下 TODO 步骤！不可跳过！**
+**执行 MongoDB 查询前，必须按顺序完成以下步骤：**
 
-### TODO 1：确定租户信息
-- [ ] 已获取租户名称或 org_id
-- [ ] 使用 `db-user` skill 查询租户的工厂号（如果只有租户名称）
-- [ ] 记录 org_id 值：______
+### TODO 1：获取租户信息
 
-### TODO 2：确定对象信息
-- [ ] 已明确要查询的对象名称（如"生产工单"、"物料"等）
-- [ ] 使用 `db-metadata` skill 查询对象编码（object_code）
-- [ ] 记录 object_code 值：______
-- [ ] 确认对象类型：预制对象（元数据 org_id = -1）/ 自定义对象（元数据 org_id != -1）
+**判断**：用户是否已提供 org_id？
+- ✅ **已提供**：直接使用，记录 org_id = ______
+- ❌ **未提供**：
+  - [ ] 确认工厂名称或工厂编号
+  - [ ] 使用 `db-user` skill 查询租户信息
+  - [ ] 记录租户ID (org_id): ______
 
-### TODO 3：拼接集合名
-- [ ] 预制对象：集合名 = `{object_code}`，查询时添加 `{"orgId": org_id}` 过滤
-- [ ] 自定义对象：集合名 = `{object_code}#{org_id}`
+### TODO 2：获取对象编码
 
-**只有完成以上 TODO 后，才能执行 MongoDB 查询！**
+**判断**：用户是否已提供 object_code？
+- ✅ **已提供**：直接使用，记录 object_code = ______
+- ❌ **未提供**：
+  - [ ] 确认对象名称（如"生产工单"、"物料"等）
+  - [ ] 使用 `db-metadata` skill 查询（参考 object-mapping-supplement.md）
+  - [ ] 记录 object_code: ______
+  - [ ] 记录对象类型：□ 预制对象 (org_id=-1) / □ 自定义对象 (org_id≠-1)
+
+### TODO 3：确定集合名和过滤条件
+
+- [ ] 根据对象类型确定集合名
+  - 预制对象：集合名 = `{object_code}`，查询时必须添加 `orgId` 过滤
+  - 自定义对象：集合名 = `{object_code}#{org_id}`
+- [ ] 记录集合名: ______
+- [ ] 记录基础过滤条件: ______
+
+### TODO 4：查看样本数据确认字段
+
+**如果需要使用业务字段（如工单编号、物料名称等）进行查询，必须先完成此步骤：**
+
+- [ ] 使用 `find` 查询 1 条样本数据（`limit: 1`）查看字段结构
+- [ ] 确认业务字段的实际字段名
+- [ ] 记录字段映射: ______
+
+**示例**：
+```javascript
+// 先查看样本数据
+collection: "{object_code}"
+database: "object_project_feature"
+filter: {"orgId": {org_id}}
+limit: 1
+
+// 从结果中确认字段名，例如：工单编号字段是 "code" 而不是 "orderNo"
+```
+
+**重要**：不同对象的字段名可能不同，禁止猜测字段名。
+
+### TODO 5：执行正式查询
+
+- [ ] 使用确认的字段名构建查询条件
+- [ ] 执行 MongoDB 查询
 
 ---
 
@@ -46,56 +93,45 @@ description: 查询 MongoDB 数据库的业务对象数据。目前仅支持 Fea
 - ✅ 正确：先完成 TODO 1-3，再执行 MongoDB 查询
 
 ### 错误4：预制对象缺少 orgId 过滤
-- ❌ 错误：`filter: {"orderNo": "xxx"}`
-- ✅ 正确：`filter: {"orderNo": "xxx", "orgId": 10677487}`
+- **预制对象**：查询时必须添加 `orgId` 过滤条件
+  - ❌ 错误：`filter: {"code": "xxx"}`
+  - ✅ 正确：`filter: {"code": "xxx", "orgId": {org_id}}`
+- **自定义对象**：集合名已包含 org_id（`{object_code}#{org_id}`），无需额外过滤
 
 ---
 
 ## 【完整查询示例】
 
-**需求**：查询 feature 环境中，生产工单编号为 gm260204-001 的数据
+**需求**：查询 feature 环境中，生产工单编号为 xxx 的数据
 
 ### TODO 1：确定租户信息 ✅
-使用 `db-user` skill 查询租户信息：
-```sql
-SELECT org_id, org_name FROM organization WHERE org_name LIKE '%xxx%' AND deleted_at = 0;
-```
-结果：org_id = 10677487
+- 使用 `db-user` skill 查询租户信息
+- 结果：org_id = {org_id}
 
 ### TODO 2：确定对象信息 ✅
-使用 `db-metadata` skill 查询"生产工单"的对象编码：
-```sql
-SELECT object_code, object_name, org_id FROM standard_business_object 
-WHERE object_name LIKE '%生产工单%' AND deleted_at = 0;
-```
-结果：object_code = WorkOrder, 元数据 org_id = -1（预制对象）
+- 使用 `db-metadata` skill 查询"生产工单"的对象编码
+- 结果：object_code = ProductionOrder（预制对象）
 
-### TODO 3：拼接集合名 ✅
-- 对象类型：预制对象（元数据 org_id = -1）
-- 集合名：`WorkOrder`
-- 查询时添加 orgId 过滤
+### TODO 3：确定集合名 ✅
+- 集合名：`ProductionOrder`
+- 基础过滤：`{"orgId": {org_id}}`
 
-### 执行 MongoDB 查询
-```
-collection: "WorkOrder"
+### TODO 4：查看样本数据确认字段 ✅
+- 查看 1 条样本数据，确认工单编号字段为 `code`
+
+### TODO 5：执行正式查询 ✅
+```javascript
+collection: "ProductionOrder"
 database: "object_project_feature"
-filter: {"orderNo": "gm260204-001", "orgId": 10677487}
+filter: {"code": "xxx", "orgId": {org_id}}
 ```
 
 ---
 
-## 【常用对象编码速查】
+## 【查询租户和对象信息】
 
-| 对象名称 | object_code | 对象类型 | 集合名规则 |
-|---------|-------------|---------|-----------|
-| 生产工单 | WorkOrder | 预制对象 | `WorkOrder` + orgId 过滤 |
-| 物料 | Material | 预制对象 | `Material` + orgId 过滤 |
-| BOM | BOM | 预制对象 | `BOM` + orgId 过滤 |
-| 工艺路线 | ProcessRoute | 预制对象 | `ProcessRoute` + orgId 过滤 |
-| 生产任务 | ProduceTask | 预制对象 | `ProduceTask` + orgId 过滤 |
-| 自定义对象 | {object_code} | 自定义对象 | `{object_code}#{org_id}` |
-
-> **注意**：速查表仅供参考，实际以 `db-metadata` 查询结果为准
+- **查询租户信息**：使用 `db-user` skill
+- **查询对象编码**：使用 `db-metadata` skill（参考 object-mapping-supplement.md）
 
 ---
 
@@ -116,8 +152,8 @@ filter: {"orderNo": "gm260204-001", "orgId": 10677487}
 
 | 对象类型 | 集合名格式 | 示例 |
 |---------|-----------|------|
-| 自定义对象 | `{object_code}#{org_id}` | `material#10677487` |
-| 预制对象 | `{object_code}` | `WorkOrder` |
+| 自定义对象 | `{object_code}#{org_id}` | `CustomObject#{org_id}` |
+| 预制对象 | `{object_code}` | `ProductionOrder` |
 | 关联表 | `{xxx}_Rel` | 暂不关注 |
 
 ### 关键字段
@@ -138,6 +174,20 @@ filter: {"orderNo": "gm260204-001", "orgId": 10677487}
 - `find` - 查询文档
 - `count` - 统计数量
 - `aggregate` - 聚合查询
+
+## 【MongoDB 通用字段】
+
+以下是预制对象在 MongoDB 中的**通用字段**（所有预制对象都包含）：
+
+| 字段名 | 数据类型 | 说明 |
+|--------|---------|------|
+| `orgId` | Number | 租户ID，预制对象查询时必须过滤此字段 |
+| `createdAt` | Date | 记录创建时间 |
+| `updatedAt` | Date | 记录更新时间 |
+
+**业务字段**：不同对象有不同的业务字段（如编号、名称、状态等），使用前必须通过 TODO 4 查看样本数据确认。
+
+---
 
 ## 注意事项
 

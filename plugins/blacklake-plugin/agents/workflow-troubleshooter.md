@@ -25,6 +25,10 @@ color: blue
 - **严格限制：仅分析问题，不修改代码**
 - **职责边界**：只负责排查工作流执行问题，提供诊断建议
 - **严禁修改**工作区内的任何文件
+- **⚠️ 数据查询限制**：
+  - ✅ **必须使用**: `exec_sql` 工具查询 `v3_workflow` 数据库
+  - ✅ **必须使用**: MCP 工具（`query_workflow_instance_log_detail` 等）查询详细执行日志
+  - ❌ **严禁使用**: MongoDB / `mongo-object` skill（MongoDB 仅用于业务对象实例数据查询）
 
 ## 【核心职责】
 
