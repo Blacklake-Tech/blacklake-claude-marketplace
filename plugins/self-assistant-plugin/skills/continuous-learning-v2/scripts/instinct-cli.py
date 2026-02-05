@@ -3,10 +3,11 @@
 Instinct CLI - Manage instincts for Continuous Learning v2
 
 Commands:
-  status   - Show all instincts and their status
-  import   - Import instincts from file or URL
-  export   - Export instincts to file
-  evolve   - Cluster instincts into skills/commands/agents
+  status     - Show all instincts and their status
+  import     - Import instincts from file or URL
+  export     - Export instincts to file
+  evolve     - Cluster instincts into skills/commands/agents
+  claude-md  - Manage project-level CLAUDE.md conventions
 """
 
 import argparse
@@ -448,6 +449,214 @@ def cmd_evolve(args):
 
 
 # ─────────────────────────────────────────────
+# CLAUDE.md Commands
+# ─────────────────────────────────────────────
+
+# 默认 sections 配置
+DEFAULT_SECTIONS = [
+    "项目约定",
+    "代码风格",
+    "API 规范",
+    "Git 工作流",
+    "测试策略",
+    "特殊注意事项"
+]
+
+def get_claude_md_path() -> Path:
+    """获取当前项目的 CLAUDE.md 路径（项目根目录）"""
+    return Path.cwd() / "CLAUDE.md"
+
+
+def load_claude_md() -> dict:
+    """加载并解析 CLAUDE.md 文件，返回 sections 字典"""
+    claude_md_path = get_claude_md_path()
+    sections = {}
+    
+    if not claude_md_path.exists():
+        return sections
+    
+    content = claude_md_path.read_text(encoding='utf-8')
+    current_section = None
+    current_content = []
+    
+    for line in content.split('\n'):
+        # 检测 section 标题（## 开头）
+        if line.startswith('## '):
+            # 保存上一个 section
+            if current_section:
+                sections[current_section] = '\n'.join(current_content).strip()
+            current_section = line[3:].strip()
+            current_content = []
+        elif current_section:
+            current_content.append(line)
+    
+    # 保存最后一个 section
+    if current_section:
+        sections[current_section] = '\n'.join(current_content).strip()
+    
+    return sections
+
+
+def save_claude_md(sections: dict, project_name: str = None):
+    """保存 sections 到 CLAUDE.md 文件"""
+    claude_md_path = get_claude_md_path()
+    
+    # 获取项目名称
+    if not project_name:
+        project_name = Path.cwd().name
+    
+    # 生成内容
+    timestamp = datetime.now().strftime('%Y-%m-%d')
+    content = f"""# {project_name} - Claude 项目指南
+
+**自动生成**: 此文件由 continuous-learning-v2 维护
+**最后更新**: {timestamp}
+
+---
+
+"""
+    
+    # 按照默认顺序排列 sections
+    ordered_sections = []
+    for s in DEFAULT_SECTIONS:
+        if s in sections:
+            ordered_sections.append(s)
+    
+    # 添加其他不在默认列表中的 sections
+    for s in sections:
+        if s not in ordered_sections:
+            ordered_sections.append(s)
+    
+    # 生成各 section
+    for section in ordered_sections:
+        content += f"## {section}\n\n"
+        section_content = sections.get(section, '')
+        if section_content:
+            content += section_content + "\n"
+        content += "\n"
+    
+    # 写入文件
+    claude_md_path.write_text(content, encoding='utf-8')
+    return claude_md_path
+
+
+def cmd_claude_md_add(args):
+    """添加规范到 CLAUDE.md"""
+    section = args.section
+    content = args.content
+    
+    # 加载现有内容
+    sections = load_claude_md()
+    
+    # 添加或追加内容
+    if section in sections:
+        # 追加到现有 section
+        existing = sections[section]
+        if existing:
+            sections[section] = existing + "\n- " + content
+        else:
+            sections[section] = "- " + content
+    else:
+        # 创建新 section
+        sections[section] = "- " + content
+    
+    # 保存
+    output_path = save_claude_md(sections)
+    
+    print(f"✅ 已添加到 CLAUDE.md")
+    print(f"   Section: {section}")
+    print(f"   Content: {content}")
+    print(f"   File: {output_path}")
+    
+    return 0
+
+
+def cmd_claude_md_list(args):
+    """列出 CLAUDE.md 中的所有规范"""
+    sections = load_claude_md()
+    claude_md_path = get_claude_md_path()
+    
+    if not sections:
+        print(f"当前项目没有 CLAUDE.md 或文件为空。")
+        print(f"路径: {claude_md_path}")
+        print(f"\n使用 'claude-md add' 添加第一条规范。")
+        return 0
+    
+    print(f"\n{'='*60}")
+    print(f"  CLAUDE.md - {Path.cwd().name}")
+    print(f"{'='*60}\n")
+    
+    for section, content in sections.items():
+        if content.strip():
+            print(f"## {section}")
+            print()
+            for line in content.split('\n'):
+                if line.strip():
+                    print(f"  {line}")
+            print()
+    
+    print(f"─────────────────────────────────────────────────────────")
+    print(f"  File: {claude_md_path}")
+    print(f"\n{'='*60}\n")
+    
+    return 0
+
+
+def cmd_claude_md_show(args):
+    """显示 CLAUDE.md 文件内容"""
+    claude_md_path = get_claude_md_path()
+    
+    if not claude_md_path.exists():
+        print(f"当前项目没有 CLAUDE.md 文件。")
+        print(f"路径: {claude_md_path}")
+        return 1
+    
+    content = claude_md_path.read_text(encoding='utf-8')
+    print(content)
+    
+    return 0
+
+
+def cmd_claude_md_init(args):
+    """初始化 CLAUDE.md 文件"""
+    claude_md_path = get_claude_md_path()
+    
+    if claude_md_path.exists() and not args.force:
+        print(f"CLAUDE.md 已存在: {claude_md_path}")
+        print(f"使用 --force 覆盖现有文件。")
+        return 1
+    
+    # 创建默认 sections
+    sections = {}
+    for s in DEFAULT_SECTIONS:
+        sections[s] = ""
+    
+    # 保存
+    output_path = save_claude_md(sections)
+    
+    print(f"✅ 已创建 CLAUDE.md")
+    print(f"   File: {output_path}")
+    print(f"\n使用 'claude-md add' 添加规范。")
+    
+    return 0
+
+
+def cmd_claude_md(args):
+    """CLAUDE.md 子命令分发"""
+    if args.claude_md_command == 'add':
+        return cmd_claude_md_add(args)
+    elif args.claude_md_command == 'list':
+        return cmd_claude_md_list(args)
+    elif args.claude_md_command == 'show':
+        return cmd_claude_md_show(args)
+    elif args.claude_md_command == 'init':
+        return cmd_claude_md_init(args)
+    else:
+        print("Available claude-md commands: add, list, show, init")
+        return 1
+
+
+# ─────────────────────────────────────────────
 # Main
 # ─────────────────────────────────────────────
 
@@ -475,6 +684,25 @@ def main():
     evolve_parser = subparsers.add_parser('evolve', help='Analyze and evolve instincts')
     evolve_parser.add_argument('--generate', action='store_true', help='Generate evolved structures')
 
+    # Claude-md (项目级规范管理)
+    claude_md_parser = subparsers.add_parser('claude-md', help='Manage project-level CLAUDE.md conventions')
+    claude_md_subparsers = claude_md_parser.add_subparsers(dest='claude_md_command', help='claude-md commands')
+    
+    # claude-md add
+    claude_md_add = claude_md_subparsers.add_parser('add', help='Add a convention to CLAUDE.md')
+    claude_md_add.add_argument('--section', '-s', required=True, help='Section name (e.g., "API 规范", "代码风格")')
+    claude_md_add.add_argument('--content', '-c', required=True, help='Convention content to add')
+    
+    # claude-md list
+    claude_md_subparsers.add_parser('list', help='List all conventions in CLAUDE.md')
+    
+    # claude-md show
+    claude_md_subparsers.add_parser('show', help='Show CLAUDE.md file content')
+    
+    # claude-md init
+    claude_md_init = claude_md_subparsers.add_parser('init', help='Initialize CLAUDE.md file')
+    claude_md_init.add_argument('--force', '-f', action='store_true', help='Overwrite existing file')
+
     args = parser.parse_args()
 
     if args.command == 'status':
@@ -485,6 +713,8 @@ def main():
         return cmd_export(args)
     elif args.command == 'evolve':
         return cmd_evolve(args)
+    elif args.command == 'claude-md':
+        return cmd_claude_md(args)
     else:
         parser.print_help()
         return 1

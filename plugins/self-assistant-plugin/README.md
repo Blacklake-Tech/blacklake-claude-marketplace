@@ -221,6 +221,12 @@ source: "session-observation"
 - `/instinct-export` - 导出本能用于分享
 - `/instinct-import <file>` - 导入他人的本能
 
+**CLAUDE.md 项目规范管理**（v2.1 新增）：
+- `instinct-cli.py claude-md add` - 添加项目规范到 CLAUDE.md
+- `instinct-cli.py claude-md list` - 列出当前项目所有规范
+- `instinct-cli.py claude-md show` - 显示 CLAUDE.md 完整内容
+- `instinct-cli.py claude-md init` - 初始化 CLAUDE.md 文件
+
 **置信度等级**：
 | 分数 | 含义 | 行为 |
 |------|------|------|
@@ -233,6 +239,41 @@ source: "session-observation"
 - 采用**混合风格**：技术术语保留英文（如 Instinct、Confidence、Observer），说明使用中文
 - Claude 对中文文档理解效果**与英文相同**，不影响功能
 - 本能文件支持中文 trigger 和 action，可以更贴近中文使用习惯
+
+#### CLAUDE.md 项目规范功能（v2.1 新增）
+
+**与 Instincts 的分工**：
+- **Instincts（全局）**：学习通用的工具使用偏好，存储在 `~/.claude/homunculus/`
+- **CLAUDE.md（项目级）**：记录项目特定的规范约定，存储在项目根目录 `./CLAUDE.md`
+
+**功能特点**：
+- 📝 **项目级存储** - CLAUDE.md 在项目根目录，天然实现项目隔离
+- ⚡ **实时写入** - 用户确认后立即生效，不需要等待分析
+- 🔄 **不依赖 observations** - 直接写入，不走 observations.jsonl 流程
+
+**典型场景**：
+```
+用户: "我们项目的 API 返回必须用 { data, code, msg } 格式"
+Claude: "好的，我记住了。要把这个规范记录到 CLAUDE.md 中吗？"
+用户: "好的"
+Claude: [调用 instinct-cli.py claude-md add ...]
+        "已记录到 CLAUDE.md 的「API 规范」部分 ✓"
+```
+
+**使用示例**：
+```bash
+# 添加规范
+python instinct-cli.py claude-md add --section "API 规范" --content "返回格式必须是 {data, code, msg}"
+
+# 查看规范
+python instinct-cli.py claude-md list
+
+# 显示完整内容
+python instinct-cli.py claude-md show
+
+# 初始化 CLAUDE.md
+python instinct-cli.py claude-md init
+```
 
 #### 4. `/code-review` - 代码审查
 

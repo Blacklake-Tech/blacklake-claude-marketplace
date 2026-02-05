@@ -38,6 +38,18 @@
     "skill_creator_api": "https://skill-creator.app/api",
     "backward_compatible_v1": true
   },
+  "claude_md": {
+    "enabled": true,
+    "filename": "CLAUDE.md",
+    "sections": [
+      "项目约定",
+      "代码风格",
+      "API 规范",
+      "Git 工作流",
+      "测试策略",
+      "特殊注意事项"
+    ]
+  },
   "_comments": {
     "observation": {
       "enabled": "启用/禁用观察功能",
@@ -70,6 +82,11 @@
     "integration": {
       "skill_creator_api": "Skill Creator API 地址",
       "backward_compatible_v1": "是否与 v1 向后兼容"
+    },
+    "claude_md": {
+      "enabled": "启用/禁用 CLAUDE.md 项目规范功能",
+      "filename": "CLAUDE.md 文件名",
+      "sections": "默认的规范分类列表"
     }
   }
 }

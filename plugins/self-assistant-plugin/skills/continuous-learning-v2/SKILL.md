@@ -273,6 +273,108 @@ v2 与 v1 完全兼容：
 - 不会分享实际的代码或对话内容
 - 你控制导出的内容
 
+## CLAUDE.md 项目规范维护
+
+除了学习通用的工具使用偏好（存储在全局 instincts 中），本系统还支持记录**项目特定的规范和约定**到项目根目录的 `CLAUDE.md` 文件。
+
+### 功能说明
+
+- 记录项目特定的规范和约定到 `./CLAUDE.md`
+- 实时写入，用户确认后立即生效
+- 项目级存储，天然实现项目隔离
+- 与 instincts 分工明确：instincts 学习通用偏好，CLAUDE.md 记录项目规范
+
+### 与 Instincts 的分工
+
+| 类型 | 存储位置 | 内容 | 作用域 |
+|------|---------|------|--------|
+| Instincts | ~/.claude/homunculus/ | 工具使用偏好、代码风格习惯 | 全局（所有项目） |
+| CLAUDE.md | ./CLAUDE.md | 项目特定规范、API 约定、团队约定 | 项目级（单个项目） |
+
+### 触发场景
+
+Claude 会在以下场景主动询问是否记录到 CLAUDE.md：
+
+1. **用户明确表达项目规范**
+   - "我们项目的 API 必须用 { data, code, msg } 格式"
+   - "这个项目要求测试覆盖率 80% 以上"
+   - "函数命名统一用 camelCase"
+
+2. **用户要求记录某个约定**
+   - "记住这个规范"
+   - "把这个加到项目规范里"
+
+3. **检测到用户多次纠正同一问题**
+   - 连续 3 次纠正相同类型的错误
+
+### 使用方式
+
+**自动触发**（推荐）：
+Claude 会在适当时机询问：
+```
+Claude: "要把这个规范记录到 CLAUDE.md 吗？
+        这样以后我每次都会遵循这个格式。"
+```
+
+**手动管理**：
+```bash
+# 添加规范
+instinct-cli.py claude-md add --section "API 规范" --content "返回格式必须是 {data, code, msg}"
+
+# 查看规范
+instinct-cli.py claude-md list
+
+# 显示 CLAUDE.md 内容
+instinct-cli.py claude-md show
+```
+
+### 典型场景示例
+
+**场景 A: 用户明确表达规范**
+```
+用户: "我们项目的 API 返回必须用 { data, code, msg } 格式"
+Claude: "好的，我记住了。要把这个规范记录到 CLAUDE.md 中吗？"
+用户: "好的"
+Claude: "已记录到 CLAUDE.md 的「API 规范」部分 ✓"
+```
+
+**场景 B: 检测到重复纠正**
+```
+用户: "不对，函数名用 camelCase，不要用下划线"  (第 3 次纠正)
+Claude: "抱歉！我注意到我已经多次在命名上出错。
+        要把「函数命名使用 camelCase」记录到 CLAUDE.md 吗？"
+用户: "记录"
+Claude: "已记录 ✓"
+```
+
+### CLAUDE.md 文件格式
+
+```markdown
+# 项目名称 - Claude 项目指南
+
+**自动生成**: 此文件由 continuous-learning-v2 维护
+**最后更新**: 2026-02-05
+
+---
+
+## API 规范
+- 返回格式必须是 `{ data, code, msg }`
+- 错误码遵循 HTTP 标准
+
+## 代码风格
+- 函数命名使用 camelCase
+- 组件命名使用 PascalCase
+
+## 测试策略
+- 覆盖率要求: > 80%
+- 必须包含单元测试
+
+---
+
+## 特殊注意事项
+{用户手动添加的内容，不会被覆盖}
+```
+
 ## 相关资源
 
 - [Skill Creator](https://skill-creator.app) - 从仓库历史生成本能
