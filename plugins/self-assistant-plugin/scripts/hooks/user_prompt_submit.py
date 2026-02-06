@@ -8,6 +8,10 @@ import sys
 from pathlib import Path
 from datetime import datetime
 
+# 导入日志工具
+sys.path.insert(0, str(Path(__file__).parent.parent))
+from utils.log_utils import get_hook_log_file_path, append_log_entry
+
 def main():
     try:
         input_data = json.load(sys.stdin)
@@ -15,24 +19,11 @@ def main():
         # 添加时间戳
         input_data['timestamp'] = datetime.now().isoformat()
         
-        # 记录日志（按日期文件夹）
-        today = datetime.now().strftime('%Y-%m-%d')
-        log_dir = Path.cwd() / '.claude' / 'logs' / today
-        log_dir.mkdir(parents=True, exist_ok=True)
-        log_file = log_dir / 'user_prompt_submit.json'
-        
-        log_data = []
-        if log_file.exists():
-            with open(log_file, 'r') as f:
-                try:
-                    log_data = json.load(f)
-                except:
-                    log_data = []
-        
-        log_data.append(input_data)
-        
-        with open(log_file, 'w') as f:
-            json.dump(log_data, f, indent=2, ensure_ascii=False)
+        # 记录日志到全局目录（已禁用）
+        # transcript_path = input_data.get('transcript_path', '')
+        # if transcript_path:
+        #     log_file = get_hook_log_file_path(transcript_path, 'user_prompt_submit')
+        #     append_log_entry(log_file, input_data)
         
         sys.exit(0)
         
