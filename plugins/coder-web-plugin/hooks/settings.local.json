@@ -1,0 +1,103 @@
+{
+    "hooks": {
+      "PreToolUse": [
+        {
+          "matcher": "tool == \"Bash\" && tool_input.command == \"npm run build\"",
+          "hooks": [
+            {
+              "type": "command",
+              "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/pre-build-validation.sh\"",
+              "timeout": 30
+            }
+          ],
+          "description": "构建前验证页面自定义配置"
+        }
+      ],
+      "PostToolUse": [
+        {
+          "matcher": "tool == \"Edit\" && contains(tool_input.file_path, \"Metadata.ts\")",
+          "hooks": [
+            {
+              "type": "command",
+              "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/validate-page-config.sh\"",
+              "timeout": 30
+            }
+          ],
+          "description": "编辑 Metadata.ts 后验证页面配置"
+        },
+        {
+          "matcher": "(tool == \"Edit\" || tool == \"Write\") && contains(tool_input.file_path, \"src/pages/customObject\")",
+          "hooks": [
+            {
+              "type": "command",
+              "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/generate-page-metadata.sh\"",
+              "timeout": 30
+            }
+          ],
+          "description": "修改 customObject 页面后建议更新元数据配置"
+        },
+        {
+          "matcher": "(tool == \"Edit\" || tool == \"Write\") && contains(tool_input.file_path, \"src/pages\") && !contains(tool_input.file_path, \"customObject\")",
+          "hooks": [
+            {
+              "type": "command",
+              "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/extract-page-components.sh\"",
+              "timeout": 30
+            }
+          ],
+          "description": "创建/修改其他页面后检查组件规范"
+        },
+        {
+          "matcher": "(tool == \"Edit\" || tool == \"Write\") && contains(tool_input.file_path, \".ts\")",
+          "hooks": [
+            {
+              "type": "command",
+              "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/check-page-config-pattern.sh\"",
+              "timeout": 10
+            }
+          ],
+          "description": "编辑源码文件时检查配置模式"
+        }
+      ],
+      "Stop": [
+        {
+          "matcher": "true",
+          "hooks": [
+            {
+              "type": "command",
+              "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/suggest-page-config.sh\"",
+              "timeout": 10
+            }
+          ],
+          "description": "会话结束时提供配置建议"
+        }
+      ],
+      "SessionStart": [
+        {
+          "matcher": "true",
+          "hooks": [
+            {
+              "type": "command",
+              "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/load-page-config.sh\"",
+              "timeout": 10
+            }
+          ],
+          "description": "新会话加载页面配置"
+        }
+      ],
+      "SessionEnd": [
+        {
+          "matcher": "true",
+          "hooks": [
+            {
+              "type": "command",
+              "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/save-page-config.sh\"",
+              "timeout": 10
+            }
+          ],
+          "description": "会话结束保存页面配置状态"
+        }
+      ]
+    }
+  }
+We   
