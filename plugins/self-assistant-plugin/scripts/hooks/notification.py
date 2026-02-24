@@ -13,37 +13,38 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from utils.log_utils import get_hook_log_file_path, append_log_entry
 
-def send_mac_notification(title, message):
-    """发送 macOS 通知（使用 osascript + Purr 音效）"""
-    try:
-        script = f'''
-        display notification "{message}" with title "{title}" sound name "Purr"
-        '''
-        result = subprocess.run(
-            ['osascript', '-e', script],
-            capture_output=True,
-            timeout=5,
-            text=True
-        )
-        if result.returncode == 0:
-            return True
-        if result.stderr:
-            print(f"[notification] osascript error: {result.stderr}", file=sys.stderr)
-    except Exception as e:
-        print(f"[notification] osascript exception: {e}", file=sys.stderr)
-    
-    return False
+# 通知功能已禁用 - 2026-02-23
+# def send_mac_notification(title, message):
+#     """发送 macOS 通知（使用 osascript + Purr 音效）"""
+#     try:
+#         script = f'''
+#         display notification "{message}" with title "{title}" sound name "Purr"
+#         '''
+#         result = subprocess.run(
+#             ['osascript', '-e', script],
+#             capture_output=True,
+#             timeout=5,
+#             text=True
+#         )
+#         if result.returncode == 0:
+#             return True
+#         if result.stderr:
+#             print(f"[notification] osascript error: {result.stderr}", file=sys.stderr)
+#     except Exception as e:
+#         print(f"[notification] osascript exception: {e}", file=sys.stderr)
+#     
+#     return False
 
-def play_ai_sound():
-    """播放 AI 统一提示音（Purr）"""
-    try:
-        subprocess.run(
-            ['afplay', '/System/Library/Sounds/Purr.aiff'],
-            capture_output=True,
-            timeout=2
-        )
-    except Exception:
-        pass
+# def play_ai_sound():
+#     """播放 AI 统一提示音（Purr）"""
+#     try:
+#         subprocess.run(
+#             ['afplay', '/System/Library/Sounds/Purr.aiff'],
+#             capture_output=True,
+#             timeout=2
+#         )
+#     except Exception:
+#         pass
 
 def main():
     try:
@@ -62,11 +63,12 @@ def main():
             'waiting' in message.lower()
         )
         
-        if should_notify and args.notify:
-            send_mac_notification("Claude Code 需要你的输入", "请检查终端并提供所需信息")
-        
-        if should_notify and args.tts:
-            play_ai_sound()
+        # 通知功能已禁用 - 2026-02-23
+        # if should_notify and args.notify:
+        #     send_mac_notification("Claude Code 需要你的输入", "请检查终端并提供所需信息")
+        # 
+        # if should_notify and args.tts:
+        #     play_ai_sound()
         
         # 记录日志到全局目录（已禁用）
         # transcript_path = input_data.get('transcript_path', '')

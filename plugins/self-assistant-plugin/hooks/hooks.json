@@ -37,33 +37,6 @@
         ],
         "description": "continuous-learning-v2 观察"
       }
-    ],
-    "Notification": [
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "uv run ${CLAUDE_PLUGIN_ROOT}/scripts/hooks/notification.py --notify --tts",
-            "timeout": 10,
-            "statusMessage": "发送通知..."
-          }
-        ],
-        "description": "Claude 需要输入时通知用户"
-      }
-    ],
-    "Stop": [
-      {
-        "matcher": "skill == \"quick-commit\"",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node \"${CLAUDE_PLUGIN_ROOT}/skills/quick-commit/scripts/quick-commit-done.js\"",
-            "statusMessage": "quick-commit 执行完成"
-          }
-        ],
-        "description": "quick-commit 执行完成后的通知"
-      }
     ]
   }
 }

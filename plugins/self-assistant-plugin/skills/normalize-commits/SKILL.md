@@ -1,7 +1,7 @@
 ---
 name: normalize-commits
-description: 规范化 Git 提交历史，分析并清理最近的提交，合并重复提交并改写为 Conventional Commits 格式。支持自定义分析范围（5-200 个提交）。使用时机：(1) 提交历史混乱需要整理，(2) 存在重复或无意义提交，(3) 提交消息不符合规范，(4) PR 前需要清理提交历史，(5) 代码审查前规范化提交。触发词：normalize-commits、规范化提交、整理提交历史、清理提交。
-argument-hint: [optional commit count, default: 30]
+description: 规范化 Git 提交历史，分析并清理最近的提交，合并重复提交并改写为 Conventional Commits 格式。支持自定义分析范围（2-100 个提交）。使用时机：(1) 提交历史混乱需要整理，(2) 存在重复或无意义提交，(3) 提交消息不符合规范，(4) PR 前需要清理提交历史，(5) 代码审查前规范化提交。触发词：normalize-commits、规范化提交、整理提交历史、清理提交。
+argument-hint: [optional commit count, default: 10]
 allowed-tools: Bash(git *), TodoWrite, AskQuestion
 model: sonnet
 color: blue
@@ -9,15 +9,14 @@ color: blue
 
 ## Context
 
-- Commit count parameter: $ARGUMENTS (default: 30 if empty)
-- Recent commits: !`COMMIT_COUNT="${ARGUMENTS:-30}"; if [ "$COMMIT_COUNT" -lt 5 ]; then COMMIT_COUNT=5; elif [ "$COMMIT_COUNT" -gt 200 ]; then COMMIT_COUNT=200; fi; git log --oneline -$COMMIT_COUNT --format="%h|%s|%ad" --date=format:'%Y-%m-%d'`
+- Recent commits: !`git log --oneline -10`
 - Current branch: !`git branch --show-current`
 - Remote status: !`git status -sb`
-- Existing backup: !`git branch | grep 'back/normalize-'`
+- Existing backup: !`git branch --list back/normalize-*`
 
 ## Your task
 
-分析指定数量的最近提交（默认 30 个），识别并处理重复提交和不规范提交。
+分析指定数量的最近提交（默认 10 个），识别并处理重复提交和不规范提交。
 
 ## 【任务清单管理】
 
@@ -54,7 +53,7 @@ color: blue
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-1. [✅] 分析识别：扫描最近 30 个提交
+1. [✅] 分析识别：扫描最近 10 个提交
 2. [✅] 输出报告：发现 7 个重复、15 个不规范
 3. [✅] 等待确认：用户已确认执行
 4. [✅] 创建备份：back/normalize-20260112
@@ -90,21 +89,21 @@ color: blue
 ### 参数支持
 
 命令支持可选的提交数量参数：`$ARGUMENTS`
-- 无参数：分析最近 30 个提交（默认）
+- 无参数：分析最近 10 个提交（默认）
 - 有参数：分析指定数量的提交
-- 范围限制：5-200（自动调整超出范围的值）
+- 范围限制：2-100（自动调整超出范围的值）
 
 ### 使用示例
 
 ```bash
-# 分析最近 30 个提交（默认）
+# 分析最近 10 个提交（默认）
 /normalize-commits
+
+# 分析最近 20 个提交
+/normalize-commits 20
 
 # 分析最近 50 个提交
 /normalize-commits 50
-
-# 分析最近 100 个提交
-/normalize-commits 100
 ```
 
 ### 第一阶段：分析识别
@@ -130,7 +129,7 @@ color: blue
 ```
 📊 提交分析报告
 
-总计：30 个提交
+总计：10 个提交
 ├─ 重复提交：7 个（将合并为 2 个）
 ├─ 不规范提交：15 个（需改写）
 └─ 已规范提交：8 个（无需处理）
@@ -216,7 +215,7 @@ color: blue
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 统计信息：
-- 原提交数：30
+- 原提交数：10
 - 新提交数：18
 - 合并：7 → 2（减少 5 个）
 - 改写：15 个
@@ -269,7 +268,7 @@ color: blue
 ❌ 未发现需要规范化的提交
 
 分析结果：
-- 所有 30 个提交均符合 Conventional Commits 规范
+- 所有 10 个提交均符合 Conventional Commits 规范
 - 无重复提交
 - 无需执行规范化操作
 ```
@@ -327,7 +326,7 @@ color: blue
 ❌ 提交数量参数错误
 
 输入：{N}
-有效范围：5-200
+有效范围：2-100
 
 已自动调整为：{调整后的值}
 ```
