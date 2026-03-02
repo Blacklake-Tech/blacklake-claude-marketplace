@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added - self-assistant-plugin
+
+#### quick-commit 版本升级功能
+- ✅ **版本升级流程**：支持 `/quick-commit 升级版本` 命令
+- ✅ **自动版本文件检测**：自动查找并升级版本文件（marketplace.json、plugin.json 等）
+- ✅ **智能版本推断**：默认最小版本 +1，支持指定版本号
+
 ## [1.2.0] - 2026-02-05
 
 ### Added - self-assistant-plugin
