@@ -1,5 +1,5 @@
 #!/bin/bash
-# 从 GitHub 克隆项目模板（简化版）
+# 从 GitLab 克隆项目模板（简化版）
 
 set -e
 
@@ -25,7 +25,7 @@ fi
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # 读取模板配置
-GITHUB_URL=$(node -e "
+GITLAB_URL=$(node -e "
   const config = require('$SCRIPT_DIR/templates.json');
   const tpl = config.templates['$TEMPLATE'];
   if (!tpl) {
@@ -37,16 +37,16 @@ GITHUB_URL=$(node -e "
     console.error('模板 $TEMPLATE 即将推出，暂不可用');
     process.exit(1);
   }
-  console.log(tpl.github_url);
+  console.log(tpl.gitlab_url);
 " 2>&1)
 
 if [[ $? -ne 0 ]]; then
-  echo "$GITHUB_URL"
+  echo "$GITLAB_URL"
   exit 1
 fi
 
 echo "📦 克隆模板: $TEMPLATE"
-echo "   仓库: $GITHUB_URL"
+echo "   仓库: $GITLAB_URL"
 
 # 检查目标目录
 if [[ -d "$TARGET_DIR" && "$(ls -A "$TARGET_DIR" 2>/dev/null)" ]]; then
@@ -58,7 +58,7 @@ fi
 TEMP_DIR="temp-$(date +%s)"
 echo "🔄 正在克隆..."
 
-if ! git clone --depth 1 "$GITHUB_URL" "$TEMP_DIR" 2>&1; then
+if ! git clone --depth 1 "$GITLAB_URL" "$TEMP_DIR" 2>&1; then
   echo "❌ 克隆失败"
   rm -rf "$TEMP_DIR"
   exit 1

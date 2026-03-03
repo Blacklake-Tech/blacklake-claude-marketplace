@@ -12,15 +12,15 @@
 
 ### 模板类型
 
-| 模板 ID | 名称 | 状态 | GitHub 仓库 |
+| 模板 ID | 名称 | 状态 | GitLab 仓库 |
 |---------|------|------|-------------|
-| custom-object | 自定义对象 | ✅ 可用 | [coder-custom-object](https://github.com/Blacklake-Tech/coder-custom-object) |
-| work-order | 工单 | 🚧 即将推出 | [coder-work-order](https://github.com/Blacklake-Tech/coder-work-order) |
-| material | 物料 | 🚧 即将推出 | [coder-material](https://github.com/Blacklake-Tech/coder-material) |
+| custom-object | 自定义对象 | ✅ 可用 | [aicoder-fe](https://gitlab.blacklake.tech/frontend/aicoder-fe) |
+| work-order | 工单 | 🚧 即将推出 | [aicoder-fe](https://gitlab.blacklake.tech/frontend/aicoder-fe) |
+| material | 物料 | 🚧 即将推出 | [aicoder-fe](https://gitlab.blacklake.tech/frontend/aicoder-fe) |
 
 ## 添加新模板
 
-### 步骤 1: 准备 GitHub 仓库
+### 步骤 1: 准备 GitLab 仓库
 
 创建新的模板仓库，确保符合以下要求：
 
@@ -89,7 +89,7 @@ export let mockSubObjects: SubObjectDTO[] = [];
     "work-order": {
       "name": "工单",
       "description": "工单管理的前端页面",
-      "github_url": "https://github.com/Blacklake-Tech/coder-work-order.git",
+      "gitlab_url": "https://gitlab.blacklake.tech/frontend/aicoder-fe.git",
       "metadata_path": "src/Metadata.ts",
       "project_type": "react-vite",
       "supported_zones": ["feature", "test", "pre", "prod-ali", "prod-hw", "prod-gt"]
@@ -158,7 +158,7 @@ function generateMetadata(template, metadata, objectCode) {
 
 ```bash
 # 1. 测试克隆
-bash scripts/init-from-github.sh \
+bash scripts/init-from-gitlab.sh \
   --template work-order \
   --target-dir /tmp/test-work-order \
   --object-name "测试工单"
@@ -216,7 +216,7 @@ rm -rf /tmp/test-work-order /tmp/work-order-metadata.json
 
 ### 版本策略
 
-- **模板版本**: 由 GitHub 仓库管理（通过 Git tags）
+- **模板版本**: 由 GitLab 仓库管理（通过 Git tags）
 - **Skill 版本**: 不依赖特定模板版本，始终使用最新
 
 ### 如何固定模板版本
@@ -227,14 +227,14 @@ rm -rf /tmp/test-work-order /tmp/work-order-metadata.json
 {
   "templates": {
     "custom-object": {
-      "github_url": "https://github.com/Blacklake-Tech/coder-custom-object.git",
+      "gitlab_url": "https://gitlab.blacklake.tech/frontend/aicoder-fe.git",
       "git_ref": "v1.0.0"  // 添加此字段
     }
   }
 }
 ```
 
-然后修改 `init-from-github.sh`:
+然后修改 `init-from-gitlab.sh`:
 
 ```bash
 # 读取 git_ref（如果有）
@@ -244,7 +244,7 @@ GIT_REF=$(echo "$TEMPLATE_CONFIG" | node -e "
 ")
 
 # 克隆指定分支或标签
-git clone --depth 1 --branch "$GIT_REF" "$GITHUB_URL" "$TEMP_DIR"
+git clone --depth 1 --branch "$GIT_REF" "$GITLAB_URL" "$TEMP_DIR"
 ```
 
 ## 常见问题
@@ -257,19 +257,19 @@ A: 在 `templates.json` 中为每个模板添加 `gitee_mirror` 字段：
 {
   "templates": {
     "custom-object": {
-      "github_url": "https://github.com/Blacklake-Tech/coder-custom-object.git",
-      "gitee_mirror": "https://gitee.com/blacklake/coder-custom-object.git"
+      "gitlab_url": "https://gitlab.blacklake.tech/frontend/aicoder-fe.git",
+      "gitee_mirror": "https://gitee.com/blacklake/aicoder-fe.git"
     }
   }
 }
 ```
 
-然后修改 `init-from-github.sh`，添加重试逻辑：
+然后修改 `init-from-gitlab.sh`，添加重试逻辑：
 
 ```bash
-# 尝试 GitHub，失败则尝试 Gitee
-if ! git clone --depth 1 "$GITHUB_URL" "$TEMP_DIR" 2>&1; then
-  echo "⚠️  GitHub 克隆失败，尝试 Gitee 镜像..."
+# 尝试 GitLab，失败则尝试 Gitee
+if ! git clone --depth 1 "$GITLAB_URL" "$TEMP_DIR" 2>&1; then
+  echo "⚠️  GitLab 克隆失败，尝试 Gitee 镜像..."
   git clone --depth 1 "$GITEE_MIRROR" "$TEMP_DIR"
 fi
 ```
@@ -281,17 +281,17 @@ A: 需要配置 SSH 密钥或 Personal Access Token：
 **SSH 方式**:
 ```json
 {
-  "github_url": "git@github.com:Blacklake-Tech/coder-custom-object.git"
+  "gitlab_url": "git@gitlab.blacklake.tech:frontend/aicoder-fe.git"
 }
 ```
 
 **HTTPS + Token 方式**:
 ```bash
 # 设置环境变量
-export GITHUB_TOKEN="ghp_xxxxxxxxxxxxx"
+export GITLAB_TOKEN="glpat-xxxxxxxxxxxxx"
 
 # 在克隆时使用 Token
-git clone https://${GITHUB_TOKEN}@github.com/Blacklake-Tech/coder-custom-object.git
+git clone https://${GITLAB_TOKEN}@gitlab.blacklake.tech/frontend/aicoder-fe.git
 ```
 
 ### Q3: 如何添加非 React 的模板？
@@ -330,7 +330,7 @@ A: 不需要。模板仓库就是一个标准的 React 项目，唯一特殊的�
 
 ### 模板发布
 
-1. 在 GitHub 创建 Release
+1. 在 GitLab 创建 Release
 2. 使用语义化版本号（如 v1.0.0）
 3. 在 Release Notes 中说明变更内容
 4. 更新模板文档
@@ -339,7 +339,7 @@ A: 不需要。模板仓库就是一个标准的 React 项目，唯一特殊的�
 
 在创建新模板前，确认以下清单：
 
-- [ ] GitHub 仓库已创建
+- [ ] GitLab 仓库已创建
 - [ ] 项目可以独立运行（npm install && npm run dev）
 - [ ] 包含必需文件（package.json, tsconfig.json, src/Metadata.ts）
 - [ ] Metadata.ts 格式符合要求

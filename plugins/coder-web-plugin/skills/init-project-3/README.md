@@ -1,10 +1,10 @@
 # init-project-3 Skill
 
-从 GitHub 克隆项目模板，AI 自动替换 Metadata.ts。
+从 GitLab 克隆项目模板，AI 自动替换 Metadata.ts。
 
 ## 核心特性
 
-- ✅ 从 GitHub 克隆最新模板
+- ✅ 从 GitLab 克隆最新模板
 - ✅ AI 自动替换 Metadata.ts（灵活）
 - ✅ 简单的脚本设计（只负责克隆）
 
@@ -13,7 +13,7 @@
 ### 简化架构
 
 **脚本只做克隆**:
-- `init-from-github.sh` - 克隆 GitHub 项目
+- `init-from-gitlab.sh` - 克隆 GitLab 项目
 - `templates.json` - 模板配置
 
 **AI 负责核心逻辑**:
@@ -27,14 +27,6 @@
 2. **可维护性** - 脚本数量少，易于理解
 3. **扩展性** - 通过 templates.json 添加新模板
 
-## 与其他 skills 的区别
-
-| 特性 | init-project-1 | init-project-2 | init-project-3 |
-|------|----------------|----------------|----------------|
-| 模板来源 | 本地 demos | 本地 demos | GitHub 远程 |
-| 实现方式 | AI 参考模板生成 | 复制+替换 | 克隆+AI 替换 |
-| 依赖安装 | 手动 | 手动 | 可选自动 |
-| 适用场景 | 深度定制 | 离线/快速 | 最新模板 |
 
 ## 快速开始
 
@@ -52,7 +44,7 @@
 
 ```bash
 # 测试克隆
-bash scripts/init-from-github.sh \
+bash scripts/init-from-gitlab.sh \
   --template custom-object \
   --target-dir /tmp/test-app
 
@@ -62,11 +54,11 @@ ls -la /tmp/test-app
 
 ## 支持的模板
 
-| 模板 | 状态 | GitHub 仓库 |
+| 模板 | 状态 | GitLab 仓库 |
 |------|------|-------------|
-| custom-object | ✅ 可用 | [coder-custom-object](https://github.com/Blacklake-Tech/coder-custom-object) |
-| work-order | 🚧 即将推出 | coder-work-order |
-| material | 🚧 即将推出 | coder-material |
+| custom-object | ✅ 可用 | [aicoder-fe](git@gitlab.blacklake.tech:frontend/coder-custom-object.git) |
+| work-order | 🚧 即将推出 | aicoder-fe |
+| material | 🚧 即将推出 | aicoder-fe |
 
 ## 添加新模板
 
@@ -78,7 +70,7 @@ ls -la /tmp/test-app
     "your-template": {
       "name": "模板名称",
       "description": "模板描述",
-      "github_url": "https://github.com/Blacklake-Tech/coder-your-template.git",
+      "gitlab_url": "git@gitlab.blacklake.tech:frontend/coder-custom-object.git",
       "metadata_path": "src/Metadata.ts"
     }
   }
@@ -98,7 +90,7 @@ ls -la /tmp/test-app
 
 - Git
 - Node.js
-- 网络连接（访问 GitHub）
+- 网络连接（访问 GitLab）
 
 ## 常见问题
 

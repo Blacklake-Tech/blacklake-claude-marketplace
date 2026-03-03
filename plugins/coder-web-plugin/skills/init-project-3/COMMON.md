@@ -67,7 +67,7 @@
 
 ### 脚本路径
 所有脚本位于 `skills/init-project-3/scripts/` 目录：
-- `init-from-github.sh` - 克隆 GitHub 项目
+- `init-from-gitlab.sh` - 克隆 GitLab 项目
 - `generate-metadata.js` - 生成 Metadata.ts
 - `validate-project.sh` - 验证项目完整性
 - `templates.json` - 模板配置文件
@@ -208,7 +208,7 @@ npm install
 ## 依赖版本约定
 
 ### 核心依赖
-版本由 GitHub 模板决定，不在 skill 中硬编码。
+版本由 GitLab 模板决定，不在 skill 中硬编码。
 
 参考模板 package.json:
 - React: ^18.2.0
@@ -217,7 +217,7 @@ npm install
 - Ant Design: ^5.10.0
 
 ### 模板更新策略
-- 模板由 GitHub 仓库维护
+- 模板由 GitLab 仓库维护
 - 每次克隆都获取最新版本
 - skill 不负责版本管理
 
@@ -225,8 +225,8 @@ npm install
 
 | 特性 | init-project-1 | init-project-2 | init-project-3 |
 |------|----------------|----------------|----------------|
-| 模板来源 | 本地 demos | 本地 demos | GitHub 远程 |
+| 模板来源 | 本地 demos | 本地 demos | GitLab 远程 |
 | 模板更新 | 手动更新 skill | 手动更新 skill | 自动获取最新 |
 | 依赖安装 | 手动 | 手动 | 自动执行 |
-| 网络要求 | 无 | 无 | 需要访问 GitHub |
+| 网络要求 | 无 | 无 | 需要访问 GitLab |
 | 可扩展性 | 中 | 低 | 高（templates.json） |

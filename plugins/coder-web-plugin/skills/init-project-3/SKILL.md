@@ -1,19 +1,14 @@
 ---
 name: init-project-3
-aliases: [clone-template, github-init]
-description: 从 GitHub 克隆项目模板并自动配置，支持自定义对象、工单、物料等多种模板
+aliases: [clone-template, gitlab-init]
+description: 从 GitLab 克隆项目模板并自动配置，支持自定义对象、工单、物料等多种模板
 ---
 
-# 前端项目初始化（从 GitHub 克隆）
+# 前端项目初始化（从 GitLab 克隆）
 
 ## 功能说明
 
-从 GitHub 克隆项目模板，AI 自动替换 Metadata.ts。
-
-**与其他 skills 的区别**:
-- `init-project-1`: 参考模板重新生成，灵活度高
-- `init-project-2`: 复制本地模板，速度快，离线可用
-- `init-project-3`: 克隆 GitHub 模板，始终最新（本 skill）
+从 GitLab 克隆项目模板，AI 自动替换 Metadata.ts。
 
 **支持的模板**:
 - ✅ `custom-object` - 自定义对象管理系统
@@ -45,13 +40,13 @@ description: 从 GitHub 克隆项目模板并自动配置，支持自定义对�
 
 **执行脚本**:
 ```bash
-bash scripts/init-from-github.sh \
+bash scripts/init-from-gitlab.sh \
   --template custom-object \
   --target-dir <绝对路径>
 ```
 
 **脚本功能**:
-- 从 GitHub 克隆项目（浅克隆）
+- 从 GitLab 克隆项目（浅克隆）
 - 移动到目标目录
 - 清理 Git 历史并重新初始化
 
@@ -89,8 +84,6 @@ npm install --legacy-peer-deps
 npm run dev
 ```
 
-
-
 ### 阶段 6: 输出成功信息
 
 ```
@@ -100,15 +93,15 @@ npm run dev
 📦 模板类型: custom-object
 🎯 对象代码: <object-code>
 📊 字段数量: <count>
-
-
+📄 生成页面: list、createOrEdit、detail
+🔗 访问地址: http://localhost:3000/<object-code>
 ```
 
 ## 关键点
 
 ### 简化设计
 
-- **脚本只负责克隆** - `init-from-github.sh` 只做克隆和移动文件
+- **脚本只负责克隆** - `init-from-gitlab.sh` 只做克隆和移动文件
 - **AI 负责替换** - 使用 Read + Write 工具直接替换 Metadata.ts
 - **AI 负责验证** - 可选执行 `npx tsc --noEmit` 检查类型
 
@@ -131,16 +124,16 @@ npm run dev
     "custom-object": {
       "name": "自定义对象",
       "description": "自定义业务对象的前端页面",
-      "github_url": "https://github.com/Blacklake-Tech/coder-custom-object.git",
+      "gitlab_url": "git@gitlab.blacklake.tech:frontend/coder-custom-object.git",
       "metadata_path": "src/Metadata.ts"
     }
   }
 }
 ```
 
-### scripts/init-from-github.sh
+### scripts/init-from-gitlab.sh
 
-克隆 GitHub 项目。
+克隆 GitLab 项目。
 
 **参数**:
 - `--template`: 模板类型
@@ -148,7 +141,7 @@ npm run dev
 
 **功能**:
 1. 读取 templates.json
-2. 克隆 GitHub 仓库
+2. 克隆 GitLab 仓库
 3. 移动文件到目标目录
 4. 清理 Git 历史
 
@@ -168,7 +161,5 @@ npm run dev
 
 ## 适用场景
 
-✅ 正常网络环境，可访问 GitHub
+✅ 正常网络环境，可访问 GitLab
 ✅ 希望使用最新的模板特性
-❌ 网络受限 → 使用 init-project-2
-❌ 需要深度定制 → 使用 init-project-1
